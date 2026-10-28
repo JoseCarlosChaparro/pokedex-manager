@@ -2,6 +2,8 @@ from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
 from pokedex_manager.routers import pokemon
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
+from pokedex_manager.db import client, users_collection
 
 from pokedex_manager.exceptions.pokeapi import (
     PokemonNotFoundError,
@@ -11,7 +13,13 @@ from pokedex_manager.exceptions.pokeapi import (
     PokemonTypeNotFoundError
     )
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await users_collection.create_index("email", unique=True)
+    yield
+    await client.close()
+
+app = FastAPI(lifespan=lifespan)
 
 ALLOWED_ORIGINS = ["http://localhost:5173"]
 
