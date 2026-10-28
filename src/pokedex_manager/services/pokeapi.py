@@ -13,3 +13,13 @@ async def get_pokemon_task(limit: int, offset: int):
     async with httpx.AsyncClient() as client:
         result = await get_pokemon_request(client, limit, offset)
         return result
+
+async def get_pokemon_by_id_request(client: httpx.AsyncClient, id: str):
+    pokemon_by_id_url = POKEAPI_POKEMON_ENDPOINT_BASE_URL + f'/{id}'
+    response = await client.get(pokemon_by_id_url)
+    return response.json()
+
+async def get_pokemon_by_id_task(id: str):
+    async with httpx.AsyncClient() as client:
+        result = await get_pokemon_by_id_request(client, id)
+        return result
