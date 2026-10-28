@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Query, HTTPException, status
+from fastapi import APIRouter, Query, HTTPException, status, Depends
 from pokedex_manager.services import pokeapi
+from pokedex_manager.dependencies import get_token_payload
 
-router = APIRouter(prefix="/api", tags=["Pokemon"])
+router = APIRouter(prefix="/api", tags=["Pokemon"], dependencies=[Depends(get_token_payload)])
 
 @router.get("/pokemon")
 async def get_pokemon(limit: int = Query(20, ge=1, le=50), offset: int = Query(0, ge=0)):
