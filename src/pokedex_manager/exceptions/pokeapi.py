@@ -11,3 +11,8 @@ class PokeAPITimeoutError(PokeAPIError):
 
 class PokeAPIServerError(PokeAPIError):
     pass
+
+class PokemonTypeNotFoundError(PokeAPIError):
+    def __init__(self, type_name: str):
+        self.type_name = type_name
+        super().__init__(f"Pokemon type not found: {type_name}")

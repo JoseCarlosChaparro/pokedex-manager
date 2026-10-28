@@ -6,7 +6,8 @@ from pokedex_manager.exceptions.pokeapi import (
     PokemonNotFoundError,
     PokeAPIError,
     PokeAPIServerError,
-    PokeAPITimeoutError
+    PokeAPITimeoutError,
+    PokemonTypeNotFoundError
     )
 
 app = FastAPI()
@@ -15,6 +16,7 @@ POKEAPI_ERROR_STATUS = {
     PokemonNotFoundError: status.HTTP_404_NOT_FOUND,
     PokeAPIServerError: status.HTTP_502_BAD_GATEWAY,
     PokeAPITimeoutError: status.HTTP_504_GATEWAY_TIMEOUT,
+    PokemonTypeNotFoundError: status.HTTP_404_NOT_FOUND
 }
 
 @app.exception_handler(PokeAPIError)

@@ -19,3 +19,7 @@ async def search_pokemon(name: str = Query(...)):
 async def get_pokemon_by_id(id_or_name: str):
     pokemon = await pokeapi.get_pokemon_by_id_task(id_or_name)
     return pokemon
+
+@router.get("/pokemon/type/{type_name}")
+async def get_pokemon_by_type(type_name: str,limit: int = Query(20, ge=1, le=50),offset: int = Query(0, ge=0)):
+    return await pokeapi.get_pokemon_by_type_task(type_name.lower(), limit, offset)
