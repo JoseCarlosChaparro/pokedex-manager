@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
 from pokedex_manager.routers import pokemon
+from fastapi.middleware.cors import CORSMiddleware
 
 from pokedex_manager.exceptions.pokeapi import (
     PokemonNotFoundError,
@@ -11,6 +12,15 @@ from pokedex_manager.exceptions.pokeapi import (
     )
 
 app = FastAPI()
+
+ALLOWED_ORIGINS = ["http://localhost:5173"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=ALLOWED_ORIGINS,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 POKEAPI_ERROR_STATUS = {
     PokemonNotFoundError: status.HTTP_404_NOT_FOUND,
