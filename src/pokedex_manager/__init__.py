@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
-from pokedex_manager.db import client, users_collection
+from pokedex_manager.db import client, users_collection,revoked_tokens_collection
 from pokedex_manager.routers import auth, pokemon
 
 from pokedex_manager.exceptions.pokeapi import (
@@ -16,6 +16,7 @@ from pokedex_manager.exceptions.pokeapi import (
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await users_collection.create_index("email", unique=True)
+    await revoked_tokens_collection.create_index("expires_at", expireAfterSeconds=0)
     yield
     await client.close()
 

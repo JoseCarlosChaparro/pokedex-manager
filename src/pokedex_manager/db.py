@@ -8,3 +8,4 @@ MONGO_DB_NAME = os.getenv("MONGO_DB_NAME", "pokedex")
 client = AsyncMongoClient(MONGO_URL)
 database = client[MONGO_DB_NAME]
 users_collection = database["users"]
+revoked_tokens_collection = database["revoked_tokens"]

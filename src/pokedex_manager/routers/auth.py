@@ -1,7 +1,10 @@
-from fastapi import APIRouter, HTTPException, status
+from datetime import datetime, timezone
+
+from fastapi import APIRouter, Depends, HTTPException, status
 from pymongo.errors import DuplicateKeyError
 
-from pokedex_manager.db import users_collection
+from pokedex_manager.db import revoked_tokens_collection, users_collection
+from pokedex_manager.dependencies import get_token_payload
 from pokedex_manager.models.user import AccessToken, LoginCredentials, RegisterCredentials, UserPublic
 from pokedex_manager.services.auth import create_access_token, hash_password, verify_password
 
@@ -26,3 +29,8 @@ async def login(credentials: LoginCredentials):
     if user is None or not verify_password(credentials.password, user["password_hash"]):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
     return AccessToken(access_token=create_access_token(str(user["_id"])))
+
+@router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
+async def logout(payload: dict = Depends(get_token_payload)):
+    expires_at = datetime.fromtimestamp(payload["exp"], tz=timezone.utc)
+    await revoked_tokens_collection.insert_one({"_id": payload["jti"], "expires_at": expires_at})
