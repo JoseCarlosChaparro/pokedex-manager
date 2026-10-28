@@ -1,9 +1,9 @@
 from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
-from pokedex_manager.routers import pokemon
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from pokedex_manager.db import client, users_collection
+from pokedex_manager.routers import auth, pokemon
 
 from pokedex_manager.exceptions.pokeapi import (
     PokemonNotFoundError,
@@ -50,3 +50,4 @@ async def root():
     return {"message": "Hello World"}
 
 app.include_router(pokemon.router)
+app.include_router(auth.router)
