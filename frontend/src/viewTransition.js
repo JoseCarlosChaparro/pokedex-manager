@@ -10,6 +10,7 @@ const EXIT_SECONDS = 0.18
 const ENTER_SECONDS = 0.35
 const ENTER_STAGGER_SECONDS = 0.02
 const REDUCED_FADE_SECONDS = 0.15
+const TWEEN_PROPS = 'opacity,transform'
 
 export function viewDirection(from, to) {
   return Math.sign(VIEW_ORDER.indexOf(to) - VIEW_ORDER.indexOf(from))
@@ -29,25 +30,48 @@ function enterMotion(direction, reducedMotion) {
   }
   return {
     from: { opacity: 0, x: direction * SLIDE_PX },
-    to: { opacity: 1, x: 0, duration: ENTER_SECONDS, stagger: ENTER_STAGGER_SECONDS, clearProps: 'opacity,transform' },
+    to: { opacity: 1, x: 0, duration: ENTER_SECONDS, stagger: ENTER_STAGGER_SECONDS, clearProps: TWEEN_PROPS },
   }
 }
 
-function tween(targets, { from, to }) {
-  if (targets.length === 0) return Promise.resolve()
+// Resolves when the tween ends or when `signal` aborts (the tween is killed and the items reset at once)
+function tween(items, { from, to }, signal) {
+  if (items.length === 0 || signal?.aborted) return Promise.resolve()
   return new Promise((resolve) => {
-    gsap.fromTo(targets, from, { ...to, onComplete: resolve })
+    const animation = gsap.fromTo(items, from, { ...to, onComplete: resolve })
+    signal?.addEventListener(
+      'abort',
+      () => {
+        animation.kill()
+        gsap.set(items, { clearProps: TWEEN_PROPS })
+        resolve()
+      },
+      { once: true },
+    )
   })
 }
 
 // Outgoing items slide against the direction and fade; `swap` changes the view and must commit the
 // new items to the DOM before it returns (flushSync), then the incoming items slide in from the direction.
-export async function playViewTransition({ grid, direction, reducedMotion, swap }) {
+// An aborted `signal` (a newer switch, unmount) stops the transition and skips the swap.
+// If the animation fails the view still changes and the inline styles are cleared.
+export async function playViewTransition({ grid, direction, reducedMotion, swap, signal }) {
   if (direction === NO_MOTION) {
     swap()
     return
   }
-  await tween(animatedItems(grid), exitMotion(direction, reducedMotion))
-  swap()
-  await tween(animatedItems(grid), enterMotion(direction, reducedMotion))
+  let swapped = false
+  const applySwap = () => {
+    swapped = true
+    swap()
+  }
+  try {
+    await tween(animatedItems(grid), exitMotion(direction, reducedMotion), signal)
+    if (signal?.aborted) return
+    applySwap()
+    await tween(animatedItems(grid), enterMotion(direction, reducedMotion), signal)
+  } catch {
+    gsap.set(animatedItems(grid), { clearProps: TWEEN_PROPS })
+    if (!swapped && !signal?.aborted) applySwap()
+  }
 }

@@ -1,6 +1,9 @@
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { VIEWS } from './urlState'
+import { gsap } from 'gsap'
 import { playViewTransition, viewDirection } from './viewTransition'
+
+vi.mock('gsap', () => ({ gsap: { fromTo: vi.fn(), set: vi.fn() } }))
 
 const gridWithItems = (count) => {
   const grid = document.createElement('ul')
@@ -37,3 +40,34 @@ describe('playViewTransition', () => {
     expect(swap).toHaveBeenCalledOnce()
   })
 })
+
+describe('playViewTransition failures and aborts', () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  it('still applies the view when the animation fails', async () => {
+    gsap.fromTo.mockImplementation(() => {
+      throw new Error('animation failed')
+    })
+    const swap = vi.fn()
+
+    await playViewTransition({ grid: gridWithItems(3), direction: 1, reducedMotion: false, swap })
+
+    expect(swap).toHaveBeenCalledOnce()
+    expect(gsap.set).toHaveBeenCalled()
+  })
+
+  it('skips the swap and kills the tween when aborted mid-exit', async () => {
+    const kill = vi.fn()
+    gsap.fromTo.mockImplementation(() => ({ kill }))
+    const controller = new AbortController()
+    const swap = vi.fn()
+
+    const run = playViewTransition({ grid: gridWithItems(3), direction: 1, reducedMotion: false, swap, signal: controller.signal })
+    controller.abort()
+    await run
+
+    expect(kill).toHaveBeenCalledOnce()
+    expect(swap).not.toHaveBeenCalled()
+  })
+})
+

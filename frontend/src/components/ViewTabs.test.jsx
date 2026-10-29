@@ -29,4 +29,17 @@ describe('ViewTabs', () => {
 
     expect(screen.getByRole('heading', { level: 2, name: 'Pokédex' })).toBeInTheDocument()
   })
+
+  it('speaks the sealed count once on the collection view', () => {
+    renderTabs({ view: 'favorites', sealedCount: 1 })
+
+    expect(screen.getAllByText(/1 sobre sin abrir/)).toHaveLength(1)
+  })
+
+  it('shows no Pokédex number while the total is unknown', () => {
+    renderTabs({ totalCount: undefined })
+
+    expect(screen.queryByText('0')).toBeNull()
+    expect(screen.queryByText('1,025')).toBeNull()
+  })
 })

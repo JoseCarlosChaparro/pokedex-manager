@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { COLLECTION_TARGET_SELECTOR, throwPokeBall } from '../flyToCollection'
@@ -37,6 +37,9 @@ export default function PokemonBrowser({ onUnauthorized, playTransition = playVi
   const { index, isLoading, error: indexError } = usePokedexIndex({ onUnauthorized })
   const { favorites, isFavorite, toggleFavorite, openPack, error: favoritesError } = useFavorites({ onUnauthorized })
   const gridRef = useRef(null)
+  // The tab asked for while its grid transition still runs: the selection follows it at once
+  const [pendingView, setPendingView] = useState(null)
+  const viewSwitchRef = useRef(null) // { view, controller } of the switch that may still swap
 
   const isFavoritesView = url.view === VIEWS.favorites
   const source = useMemo(() => {
@@ -56,15 +59,45 @@ export default function PokemonBrowser({ onUnauthorized, playTransition = playVi
     setUrl({ ...changes, page: changes.page ?? 1 }, options)
   }
 
-  // The grid slides toward the picked tab. The swap is flushed so the transition animates the new items.
+  // The grid slides toward the picked tab. Only the latest request may swap: a newer click aborts the older
+  // switch, a repeated click on the target tab is ignored, and Back, unmount or an abort drops the switch.
+  // The swap is flushed so the transition animates the new items.
   function changeView(view) {
+    const from = viewSwitchRef.current?.view ?? url.view
+    if (view === from) return undefined
+    viewSwitchRef.current?.controller.abort()
+    const controller = new AbortController()
+    viewSwitchRef.current = { view, controller }
+    setPendingView(view)
     return playTransition({
       grid: gridRef.current,
-      direction: viewDirection(url.view, view),
+      direction: viewDirection(from, view),
       reducedMotion: prefersReducedMotion(),
-      swap: () => flushSync(() => setUrl({ view, page: 1 })),
+      signal: controller.signal,
+      swap: () => {
+        if (controller.signal.aborted) return
+        viewSwitchRef.current = null
+        flushSync(() => {
+          setPendingView(null)
+          setUrl({ view, page: 1 })
+        })
+      },
     })
   }
+
+  // Back and Forward fire popstate: they win over a switch still in flight
+  useEffect(() => {
+    const dropViewSwitch = () => {
+      viewSwitchRef.current?.controller.abort()
+      viewSwitchRef.current = null
+      setPendingView(null)
+    }
+    window.addEventListener('popstate', dropViewSwitch)
+    return () => {
+      window.removeEventListener('popstate', dropViewSwitch)
+      viewSwitchRef.current?.controller.abort()
+    }
+  }, [])
 
   // Only adding throws a Poké Ball; removing from the collection stays still
   function handleToggleFavorite(pokemon, heartButton) {
@@ -114,8 +147,8 @@ export default function PokemonBrowser({ onUnauthorized, playTransition = playVi
       <AuroraBackground colors={auroraColors} />
 
       <ViewTabs
-        view={url.view}
-        totalCount={index.length}
+        view={pendingView ?? url.view}
+        totalCount={isLoading ? undefined : index.length}
         favoritesCount={favorites.length}
         sealedCount={sealedCount}
         onChange={changeView}

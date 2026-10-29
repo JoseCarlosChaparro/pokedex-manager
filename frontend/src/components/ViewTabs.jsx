@@ -9,15 +9,15 @@ const INDICATOR_OFFSET = { [VIEWS.all]: 'translate-x-0', [VIEWS.favorites]: 'tra
 const SUBTITLE_SEPARATOR = ' · '
 const TAB_ICON_CLASS = 'hidden size-4.5 shrink-0 sm:block'
 
-function SealedBadge({ count }) {
-  const { t } = useTranslation()
+// The visible number is hidden from assistive tech; spokenText is only set when no other visible text says it
+function SealedBadge({ count, spokenText }) {
   return (
     <span
       data-sealed-badge
       className="pointer-events-none absolute -top-1.5 -right-1.5 grid h-5 min-w-5 place-items-center rounded-full bg-amber-400 px-1 text-xs font-bold text-slate-900 tabular-nums motion-safe:animate-pulse"
     >
       <span aria-hidden="true">{count}</span>
-      <span className="sr-only">{t('browser.sealedPacks', { count })}</span>
+      {spokenText && <span className="sr-only">{spokenText}</span>}
     </span>
   )
 }
@@ -37,9 +37,11 @@ function ViewTab({ view, label, name, chip, isPressed, onSelect, badge }) {
       >
         <Icon aria-hidden="true" className={TAB_ICON_CLASS} />
         <span>{label}</span>
-        <span aria-hidden="true" className="min-w-6 rounded-md bg-slate-900/10 px-1.5 text-xs tabular-nums dark:bg-white/10">
-          {chip}
-        </span>
+        {chip !== null && (
+          <span aria-hidden="true" className="min-w-6 rounded-md bg-slate-900/10 px-1.5 text-xs tabular-nums dark:bg-white/10">
+            {chip}
+          </span>
+        )}
       </button>
       {badge}
     </div>
@@ -54,18 +56,19 @@ export default function ViewTabs({ view, totalCount, favoritesCount, sealedCount
   const collectionSubtitle = t('browser.collectionSubtitle', { number: number(favoritesCount) })
   const isCollection = view === VIEWS.favorites
   const title = isCollection ? t('browser.viewFavoritesName') : t('browser.viewAll')
-  const subtitle = isCollection
-    ? [collectionSubtitle, sealedText].filter(Boolean).join(SUBTITLE_SEPARATOR)
-    : t('filters.count', { count: totalCount, number: number(totalCount) })
+  // Until the index has loaded the total is unknown: show no number rather than "0"
+  const totalKnown = totalCount !== undefined
+  const pokedexSubtitle = totalKnown ? t('filters.count', { count: totalCount, number: number(totalCount) }) : ''
+  const subtitle = isCollection ? [collectionSubtitle, sealedText].filter(Boolean).join(SUBTITLE_SEPARATOR) : pokedexSubtitle
 
   const tabs = [
-    { view: VIEWS.all, label: t('browser.viewAll'), name: t('browser.viewAll'), chip: number(totalCount) },
+    { view: VIEWS.all, label: t('browser.viewAll'), name: t('browser.viewAll'), chip: totalKnown ? number(totalCount) : null },
     {
       view: VIEWS.favorites,
       label: t('browser.viewFavoritesName'),
       name: t('browser.viewFavorites', { count: favoritesCount }),
       chip: number(favoritesCount),
-      badge: sealedCount > 0 && <SealedBadge count={sealedCount} />,
+      badge: sealedCount > 0 && <SealedBadge count={sealedCount} spokenText={isCollection ? null : sealedText} />,
     },
   ]
 

@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import PokemonBrowser from './PokemonBrowser'
@@ -31,5 +31,78 @@ describe('PokemonBrowser view switch', () => {
 
     expect(playTransition).toHaveBeenCalledWith(expect.objectContaining({ direction: 1 }))
     expect(window.location.search).toContain('view=favorites')
+  })
+})
+
+describe('PokemonBrowser view switch races', () => {
+  // The transition never settles on its own; each test drives the swaps it captured
+  const deferredTransition = () => vi.fn(() => new Promise(() => {}))
+  const requestsOf = (playTransition) => playTransition.mock.calls.map(([args]) => args)
+
+  it('the last click wins during a transition', async () => {
+    const playTransition = deferredTransition()
+    render(<PokemonBrowser onUnauthorized={vi.fn()} playTransition={playTransition} />)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Mi colección (0)' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Pokédex' }))
+    const [first, second] = requestsOf(playTransition)
+    act(() => first.swap())
+
+    expect(first.signal.aborted).toBe(true)
+    expect(second.direction).toBe(-1)
+    expect(window.location.search).not.toContain('view=favorites')
+
+    act(() => second.swap())
+    expect(screen.getByRole('button', { name: 'Pokédex' })).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('ignores a repeated click on the pending tab', async () => {
+    const playTransition = deferredTransition()
+    render(<PokemonBrowser onUnauthorized={vi.fn()} playTransition={playTransition} />)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Mi colección (0)' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Mi colección (0)' }))
+
+    expect(playTransition).toHaveBeenCalledOnce()
+  })
+
+  it('selects the clicked tab before the grid has swapped', async () => {
+    const playTransition = deferredTransition()
+    render(<PokemonBrowser onUnauthorized={vi.fn()} playTransition={playTransition} />)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Mi colección (0)' }))
+
+    expect(screen.getByRole('button', { name: 'Mi colección (0)' })).toHaveAttribute('aria-pressed', 'true')
+    expect(window.location.search).not.toContain('view=favorites')
+  })
+
+  it('does not swap after unmount', async () => {
+    const playTransition = deferredTransition()
+    const { unmount } = render(<PokemonBrowser onUnauthorized={vi.fn()} playTransition={playTransition} />)
+    await userEvent.click(screen.getByRole('button', { name: 'Mi colección (0)' }))
+    const [request] = requestsOf(playTransition)
+
+    unmount()
+    act(() => request.swap())
+
+    expect(request.signal.aborted).toBe(true)
+    expect(window.location.search).not.toContain('view=favorites')
+  })
+
+  it('a Back navigation mid-transition wins over the pending swap', async () => {
+    const playTransition = deferredTransition()
+    render(<PokemonBrowser onUnauthorized={vi.fn()} playTransition={playTransition} />)
+    await userEvent.click(screen.getByRole('button', { name: 'Mi colección (0)' }))
+    const [request] = requestsOf(playTransition)
+
+    act(() => {
+      window.history.pushState(null, '', '/?view=all')
+      window.dispatchEvent(new PopStateEvent('popstate'))
+    })
+    act(() => request.swap())
+
+    expect(request.signal.aborted).toBe(true)
+    expect(screen.getByRole('button', { name: 'Pokédex' })).toHaveAttribute('aria-pressed', 'true')
+    expect(window.location.search).not.toContain('view=favorites')
   })
 })
