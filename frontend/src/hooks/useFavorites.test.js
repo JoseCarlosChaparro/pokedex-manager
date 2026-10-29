@@ -18,7 +18,7 @@ describe('useFavorites', () => {
     const { result } = renderHook(() => useFavorites({ onUnauthorized: vi.fn() }))
 
     await waitFor(() => expect(result.current.isFavorite(25)).toBe(true))
-    expect(result.current.favorites).toEqual([PIKACHU])
+    expect(result.current.favorites).toEqual([{ ...PIKACHU, opened: false }])
   })
 
   it('adds a favorite optimistically', async () => {
@@ -54,6 +54,17 @@ describe('useFavorites', () => {
 
     expect(result.current.isFavorite(25)).toBe(false)
     expect(apiRequest).toHaveBeenLastCalledWith('/api/me/favorites/25', { method: 'DELETE' })
+  })
+
+  it('opens a sealed pack', async () => {
+    apiRequest.mockResolvedValueOnce([{ pokemon_id: 25, name: 'pikachu', opened: false }]).mockResolvedValueOnce({})
+    const { result } = renderHook(() => useFavorites({ onUnauthorized: vi.fn() }))
+    await waitFor(() => expect(result.current.isFavorite(25)).toBe(true))
+
+    await act(() => result.current.openPack(PIKACHU))
+
+    expect(result.current.favorites[0].opened).toBe(true)
+    expect(apiRequest).toHaveBeenLastCalledWith('/api/me/favorites/25/open', { method: 'POST' })
   })
 
   it('ends the session on 401', async () => {

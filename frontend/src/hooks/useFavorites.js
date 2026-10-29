@@ -24,7 +24,7 @@ export function useFavorites({ onUnauthorized }) {
     let isStale = false
     apiRequest(FAVORITES_PATH)
       .then((data) => {
-        if (!isStale) setFavorites(data.map(({ pokemon_id, name }) => ({ id: pokemon_id, name })))
+        if (!isStale) setFavorites(data.map(({ pokemon_id, name, opened }) => ({ id: pokemon_id, name, opened: Boolean(opened) })))
       })
       .catch((err) => {
         if (!isStale) handleError(err, 'No pudimos cargar tu colección.')
@@ -42,7 +42,7 @@ export function useFavorites({ onUnauthorized }) {
       const wasFavorite = favorites.some((favorite) => favorite.id === id)
       const previous = favorites
       setError('')
-      setFavorites(wasFavorite ? favorites.filter((f) => f.id !== id) : [...favorites, { id, name: pokemon.name }])
+      setFavorites(wasFavorite ? favorites.filter((f) => f.id !== id) : [...favorites, { id, name: pokemon.name, opened: false }])
       try {
         await apiRequest(`${FAVORITES_PATH}/${id}`, { method: wasFavorite ? 'DELETE' : 'PUT' })
       } catch (err) {
@@ -53,5 +53,22 @@ export function useFavorites({ onUnauthorized }) {
     [favorites, handleError],
   )
 
-  return { favorites, isFavorite, toggleFavorite, error }
+  // Opening a sealed pack is remembered on the server; shown at once, rolled back on failure
+  const openPack = useCallback(
+    async (pokemon) => {
+      const id = Number(pokemon.id)
+      const setOpened = (opened) =>
+        setFavorites((current) => current.map((favorite) => (favorite.id === id ? { ...favorite, opened } : favorite)))
+      setOpened(true)
+      try {
+        await apiRequest(`${FAVORITES_PATH}/${id}/open`, { method: 'POST' })
+      } catch (err) {
+        setOpened(false)
+        handleError(err, 'No pudimos abrir el sobre. Intenta de nuevo.')
+      }
+    },
+    [handleError],
+  )
+
+  return { favorites, isFavorite, toggleFavorite, openPack, error }
 }
