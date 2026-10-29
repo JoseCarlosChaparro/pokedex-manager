@@ -1,14 +1,17 @@
 import { PackageOpen } from 'lucide-react'
 import { useEffect, useMemo, useRef } from 'react'
+import { flushSync } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { flyToCollection } from '../flyToCollection'
 import { useFavorites } from '../hooks/useFavorites'
 import { useFlipGrid } from '../hooks/useFlipGrid'
 import { usePokedexIndex } from '../hooks/usePokedexIndex'
 import { useUrlState } from '../hooks/useUrlState'
+import { prefersReducedMotion } from '../motion'
 import { filterPokedex, paginate } from '../pokedexFilter'
 import { POKEMON_TYPE_COLORS } from '../pokemonTypes'
 import { VIEWS } from '../urlState'
+import { playViewTransition, viewDirection } from '../viewTransition'
 import AuroraBackground from './AuroraBackground'
 import BoosterPack from './BoosterPack'
 import FilterBar from './FilterBar'
@@ -27,7 +30,7 @@ const GRID_COLUMNS = {
 
 const cardButton = (id) => document.querySelector(`[data-pokemon-id="${id}"] button`)
 
-export default function PokemonBrowser({ onUnauthorized }) {
+export default function PokemonBrowser({ onUnauthorized, playTransition = playViewTransition }) {
   const { t } = useTranslation()
   const [url, setUrl] = useUrlState()
   const { index, isLoading, error: indexError } = usePokedexIndex({ onUnauthorized })
@@ -50,6 +53,16 @@ export default function PokemonBrowser({ onUnauthorized }) {
   function changeFilters(changes, options) {
     captureLayout()
     setUrl({ ...changes, page: changes.page ?? 1 }, options)
+  }
+
+  // The grid slides toward the picked tab. The swap is flushed so the transition animates the new items.
+  function changeView(view) {
+    return playTransition({
+      grid: gridRef.current,
+      direction: viewDirection(url.view, view),
+      reducedMotion: prefersReducedMotion(),
+      swap: () => flushSync(() => setUrl({ view, page: 1 })),
+    })
   }
 
   function handleToggleFavorite(pokemon, image) {
@@ -100,7 +113,7 @@ export default function PokemonBrowser({ onUnauthorized }) {
         totalCount={index.length}
         favoritesCount={favorites.length}
         sealedCount={sealedCount}
-        onChange={(view) => changeFilters({ view })}
+        onChange={changeView}
       />
 
       <FilterBar filters={url} resultCount={filtered.length} onChange={changeFilters} />
