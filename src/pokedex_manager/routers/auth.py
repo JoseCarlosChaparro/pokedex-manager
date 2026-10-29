@@ -13,7 +13,7 @@ from pokedex_manager.exceptions.auth import EmailAlreadyRegisteredError
 from pokedex_manager.models.user import AccessToken, LoginCredentials, RegisterCredentials, UserPublic
 from pokedex_manager.repositories.revoked_tokens import RevokedTokenRepository
 from pokedex_manager.repositories.users import UserRepository
-from pokedex_manager.services.auth import TokenService, hash_password, verify_password
+from pokedex_manager.services.auth import DUMMY_PASSWORD_HASH, TokenService, hash_password, verify_password
 from pokedex_manager.services.rate_limit import LoginAttemptGuard, TooManyLoginAttemptsError
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
@@ -54,7 +54,8 @@ async def login(
         ) from error
 
     user = await users.find_by_email(email)
-    if user is None or not verify_password(credentials.password, user["password_hash"]):
+    password_hash = user["password_hash"] if user else DUMMY_PASSWORD_HASH
+    if not verify_password(credentials.password, password_hash) or user is None:
         guard.record_failure(email, client_ip)
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
     guard.record_success(email)

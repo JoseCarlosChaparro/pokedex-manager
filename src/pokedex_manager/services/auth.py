@@ -10,6 +10,8 @@ JWT_ALGORITHM = "HS256"
 ACCESS_TOKEN_LIFETIME_SECONDS = 60 * 60
 
 password_hasher = PasswordHash.recommended()
+# Verified when the email is unknown, so login takes the same time whether or not the account exists
+DUMMY_PASSWORD_HASH = password_hasher.hash("dummy-password-for-constant-time-login")
 
 
 def hash_password(password: str) -> str:

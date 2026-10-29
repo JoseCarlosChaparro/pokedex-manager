@@ -70,3 +70,14 @@ def test_logout_revokes_the_token(client, auth_headers):
 
     assert response.status_code == 401
     assert response.json()["detail"] == "Token has been revoked"
+
+
+def test_login_verifies_a_password_even_for_unknown_emails(client, monkeypatch):
+    from pokedex_manager.routers import auth as auth_router
+
+    calls = []
+    monkeypatch.setattr(auth_router, "verify_password", lambda *args: calls.append(args) or False)
+
+    login(client, "ghost@example.com")
+
+    assert len(calls) == 1
