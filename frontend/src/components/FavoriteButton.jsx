@@ -22,7 +22,7 @@ export default function FavoriteButton({ pokemon, isFavorite, onToggle, classNam
       aria-label={isFavorite ? `Quitar a ${name} de mi colección` : `Agregar a ${name} a mi colección`}
       title={isFavorite ? 'En tu colección' : 'Agregar a tu colección'}
       onClick={handleClick}
-      className={`favorite-button grid h-11 w-11 place-items-center rounded-full bg-white/90 shadow-sm transition-transform hover:scale-110 focus-visible:outline-2 focus-visible:outline-brand-600 motion-reduce:transition-none motion-reduce:hover:scale-100 dark:bg-slate-900/80 ${className}`}
+      className={`favorite-button grid h-11 w-11 place-items-center rounded-full bg-white/90 shadow-sm transition-transform hover:scale-110 focus-visible:outline-2 focus-visible:outline-brand-600 dark:focus-visible:outline-brand-400 motion-reduce:transition-none motion-reduce:hover:scale-100 dark:bg-slate-900/80 ${className}`}
     >
       <Heart
         aria-hidden="true"

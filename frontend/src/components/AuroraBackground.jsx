@@ -1,4 +1,4 @@
-const DEFAULT_COLORS = ['#ef4444', '#3b82f6', '#facc15']
+const DEFAULT_COLORS = ['#f43f5e', '#3b82f6', '#facc15']
 
 // Decorative animated gradient behind the app; takes the colors of the selected types.
 // Pure CSS (transform/opacity only), static under prefers-reduced-motion.

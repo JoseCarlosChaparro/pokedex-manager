@@ -347,6 +347,11 @@ body {
   outline-offset: 3px;
 }
 
+/* Dark surfaces need the lighter brand tone to keep the focus ring at 3:1 */
+.dark .pokemon-card:focus-visible {
+  outline-color: var(--color-brand-400);
+}
+
 /* Big Pokédex number in the background */
 .pokemon-card__number {
   position: absolute;

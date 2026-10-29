@@ -34,7 +34,7 @@
 
   <!-- Poké Ball inside the bowl -->
   <g clip-path="url(#hole)">
-    <rect x="28" y="18" width="14" height="7.5" fill="#ef4444"/>
+    <rect x="28" y="18" width="14" height="7.5" fill="#f43f5e"/>
     <rect x="28" y="25.5" width="14" height="7" fill="#fff"/>
     <rect x="28" y="24.6" width="14" height="1.8" fill="#0f172a"/>
   </g>
