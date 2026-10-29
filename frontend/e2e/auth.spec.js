@@ -16,7 +16,7 @@ test('a new user registers, logs out and logs back in', async ({ page }) => {
   await page.getByLabel('Email').fill(email)
   await page.getByLabel('Contraseña').fill(PASSWORD)
   await page.getByRole('button', { name: 'Entrar' }).click()
-  await expect(page.getByRole('combobox', { name: 'Buscar Pokémon' })).toBeVisible()
+  await expect(page.getByLabel('Buscar Pokémon')).toBeVisible()
 })
 
 test('a wrong password shows a friendly error', async ({ page }) => {

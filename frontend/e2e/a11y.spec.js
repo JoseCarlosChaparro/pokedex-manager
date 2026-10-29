@@ -4,8 +4,13 @@ import { expect, test } from './fixtures'
 const WCAG_22_AA = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']
 
 async function expectNoViolations(page) {
-  // Entrance animations fade content in; measure contrast on the final state
-  await page.waitForFunction(() => document.getAnimations().every((animation) => animation.playState !== 'running'))
+  // Entrance animations fade content in; measure contrast on the final state (the background loops forever)
+  await page.waitForFunction(() =>
+    document
+      .getAnimations()
+      .filter((animation) => animation.effect?.getTiming().iterations !== Number.POSITIVE_INFINITY)
+      .every((animation) => animation.playState !== 'running'),
+  )
   // The holo foil is decorative and animated; axe can't compute contrast through blend modes reliably
   const results = await new AxeBuilder({ page }).withTags(WCAG_22_AA).exclude('.holo-art').analyze()
   expect(results.violations.map(({ id, nodes }) => `${id}: ${nodes.map((n) => n.target).join(', ')}`)).toEqual([])
@@ -24,7 +29,7 @@ for (const colorScheme of ['light', 'dark']) {
     test('list and detail have no WCAG 2.2 AA violations', async ({ user, page }) => {
       expect(user.token).toBeTruthy()
       await page.goto('/')
-      await expect(page.locator('[data-pokemon-id]')).toHaveCount(20)
+      await expect(page.locator('[data-pokemon-id]')).toHaveCount(24)
       await expectNoViolations(page)
 
       await page.goto('/?pokemon=6')
