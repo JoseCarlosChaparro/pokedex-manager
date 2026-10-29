@@ -1,4 +1,4 @@
-import { prefersReducedMotion } from './viewTransition'
+import { prefersReducedMotion } from './motion'
 
 const FLIGHT_MS = 750
 const ARC_HEIGHT_PX = 120
@@ -19,7 +19,6 @@ export function flyToCollection(image) {
     height: `${from.height}px`,
     zIndex: 50,
     pointerEvents: 'none',
-    viewTransitionName: 'none',
   })
   document.body.append(flyer)
 
@@ -33,11 +32,13 @@ export function flyToCollection(image) {
     ],
     { duration: FLIGHT_MS, easing: 'cubic-bezier(0.5, 0, 0.3, 1)' },
   )
-  flight.finished.finally(() => {
+  const land = () => {
     flyer.remove()
     target.animate(
       [{ transform: 'scale(1)' }, { transform: 'scale(1.18)' }, { transform: 'scale(1)' }],
       { duration: 350, easing: 'ease-out' },
     )
-  })
+  }
+  // A cancelled animation rejects `finished`; clean up either way
+  flight.finished.then(land, land)
 }

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { prefersReducedMotion } from '../viewTransition'
+import { prefersReducedMotion } from '../motion'
 
 const MAX_TILT_DEGREES = 8
 const RESTING_SHINE = 0.35
