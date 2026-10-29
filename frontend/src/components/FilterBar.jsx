@@ -103,7 +103,7 @@ export default function FilterBar({ filters, resultCount, onChange }) {
             onChange={(event) => onChange({ q: event.target.value }, { replace: true })}
             placeholder={t('filters.searchPlaceholder')}
             autoComplete="off"
-            className={`${fieldClass} w-full pr-9 pl-9 text-base placeholder:text-slate-500`}
+            className={`${fieldClass} w-full pr-9 pl-9 text-base placeholder:text-slate-500 dark:placeholder:text-slate-400`}
           />
           <kbd aria-hidden="true" className="pointer-events-none absolute top-1/2 right-3 hidden -translate-y-1/2 rounded border border-slate-300 px-1.5 text-xs text-slate-500 sm:block dark:border-slate-600 dark:text-slate-400">
             /
