@@ -34,25 +34,38 @@ a paginated list, search by name or number, a type filter and a detail view.
 | **uv** | Fast, reproducible Python dependency management (`uv.lock`). |
 | **React + Vite** | Component-based UI with a fast dev server and build. |
 | **Tailwind CSS** | Utility classes make a responsive, mobile-first layout quick to build without custom CSS. |
-| **Docker Compose** | One command to run MongoDB locally. |
+| **Docker Compose** | Runs the whole app (MongoDB, API and web) with one command. |
 
 ---
 
 ## Getting started
 
-### Prerequisites
+### Option A — Docker (one command)
+
+Requires only Docker.
+
+```bash
+docker compose up -d --build
+docker compose exec api uv run --no-sync python src/pokedex_manager/scripts/seed.py   # test users
+```
+
+Open http://localhost:5173 (API docs at http://localhost:8000/docs).
+
+### Option B — Local development
+
+#### Prerequisites
 
 - Python 3.12 and [uv](https://docs.astral.sh/uv/)
 - Node.js 20.19+ (or 22.12+) and npm — required by Vite
 - Docker (for MongoDB)
 
-### 1. Start MongoDB
+#### 1. Start MongoDB
 
 ```bash
-docker compose up -d
+docker compose up -d mongo
 ```
 
-### 2. Backend
+#### 2. Backend
 
 ```bash
 uv sync
@@ -62,7 +75,7 @@ uv run fastapi dev src/pokedex_manager/__init__.py
 
 The API runs at http://localhost:8000 and the interactive docs at http://localhost:8000/docs.
 
-### 3. Frontend
+#### 3. Frontend
 
 ```bash
 cd frontend
@@ -71,6 +84,24 @@ npm run dev
 ```
 
 Open http://localhost:5173.
+
+### Production (Dokploy or any Docker host)
+
+`docker-compose.prod.yml` serves everything from one domain: nginx serves the web app and proxies
+`/api` and `/auth` to the API, so the browser never makes cross-origin requests. MongoDB is not
+exposed and requires a user and password.
+
+Set these environment variables, then point the domain to the `web` service (port 80):
+
+| Variable | Purpose |
+|---|---|
+| `JWT_SECRET_KEY` | Long random secret, e.g. `openssl rand -hex 32` |
+| `MONGO_USER`, `MONGO_PASSWORD` | MongoDB credentials (alphanumeric) |
+
+```bash
+docker compose -f docker-compose.prod.yml up -d --build
+docker compose -f docker-compose.prod.yml exec api uv run --no-sync python src/pokedex_manager/scripts/seed.py
+```
 
 ### Environment variables (optional)
 
@@ -100,7 +131,9 @@ Created by the seed script (safe to run more than once):
 
 ```
 .
-├── docker-compose.yml           # MongoDB
+├── docker-compose.yml           # Local: MongoDB, API and web
+├── docker-compose.prod.yml      # Production: single domain, MongoDB with auth
+├── Dockerfile                   # API image
 ├── pyproject.toml / uv.lock     # Python dependencies
 ├── src/pokedex_manager/
 │   ├── __init__.py              # App setup: lifespan (indexes), CORS, error handler, routers
@@ -111,11 +144,14 @@ Created by the seed script (safe to run more than once):
 │   ├── routers/                 # HTTP layer: auth.py, pokemon.py
 │   ├── services/                # Logic: pokeapi.py (PokéAPI client), auth.py (hashing, JWT)
 │   └── scripts/seed.py          # Test data
-└── frontend/src/
-    ├── api.js                   # Single place that talks to the backend
-    ├── pokemonTypes.js          # Type names and their Spanish labels
-    ├── App.jsx                  # Session handling: login screen or Pokédex
-    └── components/              # AuthForm, PokemonBrowser, PokemonDetail
+└── frontend/
+    ├── Dockerfile               # Builds the app and serves it with nginx
+    ├── nginx.conf               # Static files + proxy of /api and /auth to the API
+    └── src/
+        ├── api.js                   # Single place that talks to the backend
+        ├── pokemonTypes.js          # Type names and their Spanish labels
+        ├── App.jsx                  # Session handling: login screen or Pokédex
+        └── components/              # AuthForm, PokemonBrowser, PokemonDetail
 ```
 
 ---
@@ -200,4 +236,3 @@ Indexes are created on startup (FastAPI lifespan). Passwords are never stored in
 | Safer token storage | httpOnly, `SameSite` cookie instead of `localStorage` to reduce XSS exposure. |
 | Brute-force protection | Rate limiting on `/auth/login`. |
 | Logging | Structured logging of PokéAPI errors and auth events. |
-| Docker for the whole app | Dockerfiles for backend and frontend added to `docker-compose.yml`. |
