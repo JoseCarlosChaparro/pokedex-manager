@@ -4,11 +4,11 @@ import { useUrlState } from './useUrlState'
 
 describe('useUrlState', () => {
   it('starts from the current URL', () => {
-    window.history.replaceState(null, '', '/?page=2&type=fire')
+    window.history.replaceState(null, '', '/?page=2&types=fire')
 
     const { result } = renderHook(() => useUrlState())
 
-    expect(result.current[0]).toMatchObject({ page: 2, type: 'fire' })
+    expect(result.current[0]).toMatchObject({ page: 2, types: ['fire'] })
   })
 
   it('pushes one history entry per update', () => {

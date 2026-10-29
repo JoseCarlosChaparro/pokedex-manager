@@ -6,18 +6,21 @@ describe('parseUrlState', () => {
     expect(parseUrlState('')).toEqual(DEFAULT_URL_STATE)
   })
 
-  it('reads page, type, search, open Pokémon and view', () => {
-    expect(parseUrlState('?page=3&type=fire&q=char&pokemon=6&view=favorites')).toEqual({
+  it('reads every filter', () => {
+    expect(parseUrlState('?page=3&q=char&types=fire,flying&gen=1&sort=-id&density=large&pokemon=6&view=favorites')).toEqual({
       page: 3,
-      type: 'fire',
       q: 'char',
+      types: ['fire', 'flying'],
+      gen: '1',
+      sort: '-id',
+      density: 'large',
       pokemon: '6',
       view: 'favorites',
     })
   })
 
-  it('ignores invalid page numbers and unknown views', () => {
-    expect(parseUrlState('?page=-2&view=hacker')).toEqual(DEFAULT_URL_STATE)
+  it('ignores invalid values', () => {
+    expect(parseUrlState('?page=-2&view=hacker&sort=evil&density=huge')).toEqual(DEFAULT_URL_STATE)
     expect(parseUrlState('?page=abc').page).toBe(1)
   })
 })
@@ -28,7 +31,7 @@ describe('buildSearch', () => {
   })
 
   it('round-trips through parseUrlState', () => {
-    const state = { page: 2, type: 'water', q: '', pokemon: '7', view: 'all' }
+    const state = { ...DEFAULT_URL_STATE, page: 2, types: ['water', 'ice'], pokemon: '7' }
 
     expect(parseUrlState(buildSearch(state))).toEqual(state)
   })
