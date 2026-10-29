@@ -71,7 +71,8 @@ export function useFavorites({ onUnauthorized }) {
     [favorites, handleError],
   )
 
-  // Opening a sealed pack is remembered on the server; shown at once, rolled back on failure
+  // Opening a sealed pack is remembered on the server; shown at once, rolled back on failure.
+  // Resolves true when the server accepts the opening, false when it rejects it.
   const openPack = useCallback(
     async (pokemon) => {
       const id = Number(pokemon.id)
@@ -80,9 +81,11 @@ export function useFavorites({ onUnauthorized }) {
       setOpened(true)
       try {
         await apiRequest(`${FAVORITES_PATH}/${id}/open`, { method: 'POST' })
+        return true
       } catch (err) {
         setOpened(false)
         handleError(err, 'pack.openError')
+        return false
       }
     },
     [handleError],

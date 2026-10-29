@@ -150,15 +150,17 @@ export default function PokemonBrowser({ onUnauthorized, playTransition = playVi
     if (!isLoading && !isCollectionPending && url.page !== page) setUrl({ page }, { replace: true })
   }, [isLoading, isCollectionPending, url.page, page, setUrl])
 
-  // The opened pack unmounts, taking its own live region with it: the browser announces and restores focus
+  // The opened pack unmounts, taking its own live region with it: the browser announces and restores focus.
+  // Both wait for the server: a rejected opening puts the sealed pack back, so focus returns to its button.
   const [announcement, setAnnouncement] = useState('')
   const focusCardIdRef = useRef(null)
   const [revealedId, setRevealedId] = useState(null)
-  function handlePackOpen(pokemon, { restoreFocus }) {
+  async function handlePackOpen(pokemon, { restoreFocus }) {
     setRevealedId(pokemon.id)
-    openPack(pokemon)
-    setAnnouncement(t('pack.joined', { name: pokemon.name.replaceAll('-', ' ') }))
+    const accepted = await openPack(pokemon)
     focusCardIdRef.current = restoreFocus ? pokemon.id : null
+    if (accepted) setAnnouncement(t('pack.joined', { name: pokemon.name.replaceAll('-', ' ') }))
+    else setRevealedId(null)
   }
   // After each render the card for an opened pack exists; move focus to it when the pack had keyboard focus
   useEffect(() => {

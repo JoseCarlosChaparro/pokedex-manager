@@ -86,6 +86,34 @@ describe('useFavorites', () => {
     expect(apiRequest).toHaveBeenLastCalledWith('/api/me/favorites/25/open', { method: 'POST' })
   })
 
+  it('resolves true once the server accepts the opening', async () => {
+    apiRequest.mockResolvedValueOnce([{ pokemon_id: 25, name: 'pikachu', opened: false }]).mockResolvedValueOnce({})
+    const { result } = renderHook(() => useFavorites({ onUnauthorized: vi.fn() }))
+    await waitFor(() => expect(result.current.isFavorite(25)).toBe(true))
+
+    let opened
+    await act(async () => {
+      opened = await result.current.openPack(PIKACHU)
+    })
+
+    expect(opened).toBe(true)
+  })
+
+  it('resolves false and rolls the pack back when the server rejects the opening', async () => {
+    apiRequest.mockResolvedValueOnce([{ pokemon_id: 25, name: 'pikachu', opened: false }]).mockRejectedValueOnce(new ApiError(502, 'down'))
+    const { result } = renderHook(() => useFavorites({ onUnauthorized: vi.fn() }))
+    await waitFor(() => expect(result.current.isFavorite(25)).toBe(true))
+
+    let opened
+    await act(async () => {
+      opened = await result.current.openPack(PIKACHU)
+    })
+
+    expect(opened).toBe(false)
+    expect(result.current.favorites[0].opened).toBe(false)
+    expect(result.current.error).toBe('pack.openError')
+  })
+
   it('a failed change does not undo another change made meanwhile', async () => {
     let rejectFirst
     apiRequest

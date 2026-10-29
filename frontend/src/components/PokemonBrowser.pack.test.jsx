@@ -40,6 +40,27 @@ vi.mock('./BoosterPack', async () => {
 
 const openPackButton = () => screen.getByRole('button', { name: 'Abrir pikachu' })
 const revealedCard = () => document.querySelector('[data-pokemon-id="25"]')
+const setOpened = (id, opened) => {
+  collection.favorites = collection.favorites.map((f) => (f.id === id ? { ...f, opened } : f))
+}
+const announcement = () => screen.queryByText(/se unió a tu colección/)
+
+// The server answers later, as in the browser: the test decides when and how. Like useFavorites.openPack,
+// the pack shows as opened at once and reverts when the server rejects it.
+function pendingOpening() {
+  const answer = {}
+  collection.openPack = vi.fn((pokemon) => {
+    setOpened(pokemon.id, true)
+    return new Promise((resolve) => {
+      answer.accept = () => resolve(true)
+      answer.reject = () => {
+        setOpened(pokemon.id, false)
+        resolve(false)
+      }
+    })
+  })
+  return answer
+}
 
 describe('PokemonBrowser pack reveal', () => {
   beforeEach(() => {
@@ -47,7 +68,7 @@ describe('PokemonBrowser pack reveal', () => {
     collection.favorites = [{ id: 25, name: 'pikachu', opened: false }]
     collection.isLoading = false
     collection.openPack = vi.fn(async (pokemon) => {
-      collection.favorites = collection.favorites.map((f) => (f.id === pokemon.id ? { ...f, opened: true } : f))
+      setOpened(pokemon.id, true)
       return true
     })
     packMock.restoreFocus = false
@@ -59,5 +80,59 @@ describe('PokemonBrowser pack reveal', () => {
     act(() => openPackButton().click())
 
     expect(revealedCard()).not.toHaveClass('card-enter')
+  })
+
+  describe('when the server answers the opening', () => {
+    it('does not announce the pack before the server accepts it', async () => {
+      pendingOpening()
+      render(<PokemonBrowser onUnauthorized={vi.fn()} playTransition={vi.fn()} />)
+
+      act(() => openPackButton().click())
+
+      expect(announcement()).not.toBeInTheDocument()
+    })
+
+    it('announces the pack once the server accepts it', async () => {
+      const answer = pendingOpening()
+      render(<PokemonBrowser onUnauthorized={vi.fn()} playTransition={vi.fn()} />)
+      act(() => openPackButton().click())
+
+      await act(async () => answer.accept())
+
+      expect(announcement()).toBeInTheDocument()
+    })
+
+    it('does not announce a pack the server rejects', async () => {
+      const answer = pendingOpening()
+      render(<PokemonBrowser onUnauthorized={vi.fn()} playTransition={vi.fn()} />)
+      act(() => openPackButton().click())
+
+      await act(async () => answer.reject())
+
+      expect(announcement()).not.toBeInTheDocument()
+    })
+
+    it('keeps focus off the card until a keyboard opening is accepted, then moves it there', async () => {
+      packMock.restoreFocus = true
+      const answer = pendingOpening()
+      render(<PokemonBrowser onUnauthorized={vi.fn()} playTransition={vi.fn()} />)
+      act(() => openPackButton().click())
+      expect(document.activeElement).toBe(document.body)
+
+      await act(async () => answer.accept())
+
+      expect(revealedCard().querySelector('button')).toHaveFocus()
+    })
+
+    it('puts focus back on the sealed pack when a keyboard opening is rejected', async () => {
+      packMock.restoreFocus = true
+      const answer = pendingOpening()
+      render(<PokemonBrowser onUnauthorized={vi.fn()} playTransition={vi.fn()} />)
+      act(() => openPackButton().click())
+
+      await act(async () => answer.reject())
+
+      expect(openPackButton()).toHaveFocus()
+    })
   })
 })
