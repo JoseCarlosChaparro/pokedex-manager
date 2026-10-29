@@ -22,6 +22,7 @@ from pokedex_manager.repositories.users import UserRepository
 from pokedex_manager.routers import auth, favorites, pokemon
 from pokedex_manager.services.auth import TokenService
 from pokedex_manager.services.pokeapi import PokeAPIClient
+from pokedex_manager.services.rate_limit import LoginAttemptGuard
 
 POKEAPI_ERROR_STATUS = {
     PokemonNotFoundError: status.HTTP_404_NOT_FOUND,
@@ -53,6 +54,7 @@ def create_app(
         app.state.revoked_tokens = RevokedTokenRepository(database)
         app.state.favorites = FavoriteRepository(database)
         app.state.clock = clock
+        app.state.login_guard = LoginAttemptGuard(clock)
         app.state.tokens = TokenService(settings.jwt_secret_key, clock)
         app.state.pokeapi = PokeAPIClient(
             http_client, settings.pokeapi_base_url, TTLCache(settings.pokeapi_cache_ttl_seconds, clock)

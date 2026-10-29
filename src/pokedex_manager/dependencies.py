@@ -10,6 +10,7 @@ from pokedex_manager.repositories.revoked_tokens import RevokedTokenRepository
 from pokedex_manager.repositories.users import UserRepository
 from pokedex_manager.services.auth import TokenService
 from pokedex_manager.services.pokeapi import PokeAPIClient
+from pokedex_manager.services.rate_limit import LoginAttemptGuard
 
 bearer_scheme = HTTPBearer(auto_error=False)
 
@@ -29,6 +30,10 @@ def get_favorites(request: Request) -> FavoriteRepository:
 
 def get_clock(request: Request) -> Clock:
     return request.app.state.clock
+
+
+def get_login_guard(request: Request) -> LoginAttemptGuard:
+    return request.app.state.login_guard
 
 
 def get_tokens(request: Request) -> TokenService:
