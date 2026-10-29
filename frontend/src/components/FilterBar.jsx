@@ -77,81 +77,85 @@ export default function FilterBar({ filters, resultCount, onChange }) {
         {activeCount > 0 && (
           <span className="rounded-full bg-brand-600 px-2 text-xs font-bold text-white dark:bg-brand-400 dark:text-slate-950">{activeCount}</span>
         )}
+        <p className="ml-auto text-sm font-medium text-slate-700 tabular-nums dark:text-slate-300">{formatCount(resultCount)}</p>
         <button
           type="button"
           aria-expanded={isExpanded}
           aria-controls={panelId}
           aria-label={t('filters.active', { count: activeCount })}
           onClick={() => setIsExpanded((open) => !open)}
-          className="ml-auto grid min-h-11 min-w-11 place-items-center rounded-xl ring-1 ring-slate-300/70 md:hidden dark:ring-slate-600"
+          className="grid min-h-11 min-w-11 place-items-center rounded-xl ring-1 ring-slate-300/70 md:hidden dark:ring-slate-600"
         >
           <ChevronDown aria-hidden="true" className={`size-5 transition-transform motion-reduce:transition-none ${isExpanded ? 'rotate-180' : ''}`} />
         </button>
       </header>
 
       <div id={panelId} className={panelClass(isExpanded)}>
-        <div className="relative">
-          <label htmlFor="pokemon-search" className="sr-only">
-            {t('filters.search')}
-          </label>
-          <Search aria-hidden="true" className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-500 dark:text-slate-400" />
-          <input
-            ref={searchRef}
-            id="pokemon-search"
-            type="search"
-            value={filters.q}
-            onChange={(event) => onChange({ q: event.target.value }, { replace: true })}
-            placeholder={t('filters.searchPlaceholder')}
-            autoComplete="off"
-            className={`${fieldClass} w-full pr-9 pl-9 text-base placeholder:text-slate-500 dark:placeholder:text-slate-400`}
-          />
-          <kbd aria-hidden="true" className="pointer-events-none absolute top-1/2 right-3 hidden -translate-y-1/2 rounded border border-slate-300 px-1.5 text-xs text-slate-500 sm:block dark:border-slate-600 dark:text-slate-400">
-            /
-          </kbd>
-        </div>
+        {/* From lg the search and the three pickers share one row, so the grid starts higher on the page */}
+        <div className="space-y-3 lg:grid lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:items-end lg:gap-3 lg:space-y-0">
+          <div className="relative">
+            <label htmlFor="pokemon-search" className="sr-only">
+              {t('filters.search')}
+            </label>
+            <Search aria-hidden="true" className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-500 dark:text-slate-400" />
+            <input
+              ref={searchRef}
+              id="pokemon-search"
+              type="search"
+              value={filters.q}
+              onChange={(event) => onChange({ q: event.target.value }, { replace: true })}
+              placeholder={t('filters.searchPlaceholder')}
+              autoComplete="off"
+              className={`${fieldClass} w-full pr-9 pl-9 text-base placeholder:text-slate-500 dark:placeholder:text-slate-400`}
+            />
+            <kbd aria-hidden="true" className="pointer-events-none absolute top-1/2 right-3 hidden -translate-y-1/2 rounded border border-slate-300 px-1.5 text-xs text-slate-500 sm:block dark:border-slate-600 dark:text-slate-400">
+              /
+            </kbd>
+          </div>
 
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          <div>
-            <FilterSectionTitle icon={Layers}>{t('filters.generation')}</FilterSectionTitle>
-            <select aria-label={t('filters.generation')} value={filters.gen} onChange={(e) => onChange({ gen: e.target.value })} className={`${fieldClass} w-full`}>
-              <option value="">{t('filters.allGenerations')}</option>
-              {GENERATIONS.map((gen) => (
-                <option key={gen.id} value={gen.id}>
-                  {t(`generations.${gen.id}`)}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <FilterSectionTitle icon={ArrowUpDown}>{t('filters.sort')}</FilterSectionTitle>
-            <select aria-label={t('filters.sort')} value={filters.sort} onChange={(e) => onChange({ sort: e.target.value })} className={`${fieldClass} w-full`}>
-              {Object.keys(SORTS).map((key) => (
-                <option key={key} value={key}>
-                  {t(`sorts.${key}`)}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="col-span-2 sm:col-span-1">
-            <FilterSectionTitle icon={Ruler}>{t('filters.cardSize')}</FilterSectionTitle>
-            <div role="group" aria-label={t('filters.cardSize')} className="flex rounded-xl bg-white/60 p-1 ring-1 ring-slate-300/70 backdrop-blur dark:bg-slate-800/60 dark:ring-slate-600">
-              {DENSITIES.map((density) => {
-                const DensityIcon = DENSITY_ICONS[density]
-                const label = t(`density.${density}`)
-                return (
-                  <button
-                    key={density}
-                    type="button"
-                    aria-pressed={filters.density === density}
-                    aria-label={t('filters.densityButton', { density: label })}
-                    title={label}
-                    onClick={() => onChange({ density })}
-                    className="grid min-h-9 flex-1 place-items-center rounded-lg px-3 aria-pressed:bg-brand-600 aria-pressed:text-white dark:aria-pressed:bg-brand-400 dark:aria-pressed:text-slate-950"
-                  >
-                    <DensityIcon className="size-5" />
-                  </button>
-                )
-              })}
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            <div>
+              <FilterSectionTitle icon={Layers}>{t('filters.generation')}</FilterSectionTitle>
+              <select aria-label={t('filters.generation')} value={filters.gen} onChange={(e) => onChange({ gen: e.target.value })} className={`${fieldClass} w-full`}>
+                <option value="">{t('filters.allGenerations')}</option>
+                {GENERATIONS.map((gen) => (
+                  <option key={gen.id} value={gen.id}>
+                    {t(`generations.${gen.id}`)}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <FilterSectionTitle icon={ArrowUpDown}>{t('filters.sort')}</FilterSectionTitle>
+              <select aria-label={t('filters.sort')} value={filters.sort} onChange={(e) => onChange({ sort: e.target.value })} className={`${fieldClass} w-full`}>
+                {Object.keys(SORTS).map((key) => (
+                  <option key={key} value={key}>
+                    {t(`sorts.${key}`)}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="col-span-2 sm:col-span-1">
+              <FilterSectionTitle icon={Ruler}>{t('filters.cardSize')}</FilterSectionTitle>
+              <div role="group" aria-label={t('filters.cardSize')} className="flex rounded-xl bg-white/60 p-1 ring-1 ring-slate-300/70 backdrop-blur dark:bg-slate-800/60 dark:ring-slate-600">
+                {DENSITIES.map((density) => {
+                  const DensityIcon = DENSITY_ICONS[density]
+                  const label = t(`density.${density}`)
+                  return (
+                    <button
+                      key={density}
+                      type="button"
+                      aria-pressed={filters.density === density}
+                      aria-label={t('filters.densityButton', { density: label })}
+                      title={label}
+                      onClick={() => onChange({ density })}
+                      className="grid min-h-9 flex-1 place-items-center rounded-lg px-3 aria-pressed:bg-brand-600 aria-pressed:text-white dark:aria-pressed:bg-brand-400 dark:aria-pressed:text-slate-950"
+                    >
+                      <DensityIcon className="size-5" />
+                    </button>
+                  )
+                })}
+              </div>
             </div>
           </div>
         </div>
@@ -180,18 +184,17 @@ export default function FilterBar({ filters, resultCount, onChange }) {
         </div>
       </div>
 
-      <footer className="mt-3 flex min-h-9 items-center justify-between gap-2 text-sm">
-        <p className="font-medium text-slate-700 dark:text-slate-300">{formatCount(resultCount)}</p>
-        <p aria-live="polite" className="sr-only">
-          {formatCount(announcedCount)}
-        </p>
-        {activeCount > 0 && (
+      <p aria-live="polite" className="sr-only">
+        {formatCount(announcedCount)}
+      </p>
+      {activeCount > 0 && (
+        <footer className="mt-2 flex justify-end text-sm">
           <button type="button" onClick={() => onChange({ q: '', types: [], gen: '' })} className="min-h-9 rounded-lg px-2 underline">
             <RotateCcw aria-hidden="true" className="mr-1 inline size-4" />
             {t('filters.clear')}
           </button>
-        )}
-      </footer>
+        </footer>
+      )}
     </section>
   )
 }
