@@ -10,6 +10,14 @@ from pokedex_manager.exceptions.pokeapi import (
     PokemonNotFoundError,
     PokemonTypeNotFoundError,
 )
+from pokedex_manager.services.search import PokemonName
+
+# Larger than the whole Pokédex, so a single request returns every name
+NAME_INDEX_LIMIT = 100_000
+
+
+def _id_from_resource_url(url: str) -> int:
+    return int(url.rstrip("/").rsplit("/", 1)[-1])
 
 
 class PokeAPIClient:
@@ -26,6 +34,10 @@ class PokeAPIClient:
     async def get_pokemon(self, id_or_name: str | int) -> dict:
         key = str(id_or_name).strip().lower()
         return await self._get_json(f"/pokemon/{key}", on_not_found=lambda: PokemonNotFoundError(key))
+
+    async def get_name_index(self) -> list[PokemonName]:
+        data = await self._get_json("/pokemon", params={"limit": NAME_INDEX_LIMIT, "offset": 0})
+        return [PokemonName(_id_from_resource_url(entry["url"]), entry["name"]) for entry in data["results"]]
 
     async def list_pokemon_by_type(self, type_name: str, limit: int, offset: int) -> dict:
         key = type_name.strip().lower()
