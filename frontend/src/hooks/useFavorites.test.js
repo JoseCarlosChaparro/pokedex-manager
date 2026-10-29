@@ -18,7 +18,7 @@ describe('useFavorites', () => {
     const { result } = renderHook(() => useFavorites({ onUnauthorized: vi.fn() }))
 
     await waitFor(() => expect(result.current.isFavorite(25)).toBe(true))
-    expect(result.current.favorites).toEqual([{ ...PIKACHU, opened: false }])
+    expect(result.current.favorites).toEqual([{ ...PIKACHU, opened: true }])
   })
 
   it('adds a favorite optimistically', async () => {
@@ -65,6 +65,38 @@ describe('useFavorites', () => {
 
     expect(result.current.favorites[0].opened).toBe(true)
     expect(apiRequest).toHaveBeenLastCalledWith('/api/me/favorites/25/open', { method: 'POST' })
+  })
+
+  it('a failed change does not undo another change made meanwhile', async () => {
+    let rejectFirst
+    apiRequest
+      .mockResolvedValueOnce([])
+      .mockReturnValueOnce(new Promise((_, reject) => (rejectFirst = reject)))
+      .mockResolvedValueOnce({})
+    const { result } = renderHook(() => useFavorites({ onUnauthorized: vi.fn() }))
+    await waitFor(() => expect(apiRequest).toHaveBeenCalledTimes(1))
+
+    act(() => {
+      result.current.toggleFavorite(PIKACHU)
+    })
+    await act(() => result.current.toggleFavorite({ id: 1, name: 'bulbasaur' }))
+    await act(async () => rejectFirst(new ApiError(502, 'down')))
+
+    expect(result.current.isFavorite(25)).toBe(false)
+    expect(result.current.isFavorite(1)).toBe(true)
+  })
+
+  it('ignores a second toggle of the same Pokémon while the first is in flight', async () => {
+    apiRequest.mockResolvedValueOnce([]).mockReturnValueOnce(new Promise(() => {}))
+    const { result } = renderHook(() => useFavorites({ onUnauthorized: vi.fn() }))
+    await waitFor(() => expect(apiRequest).toHaveBeenCalledTimes(1))
+
+    act(() => {
+      result.current.toggleFavorite(PIKACHU)
+      result.current.toggleFavorite(PIKACHU)
+    })
+
+    expect(apiRequest).toHaveBeenCalledTimes(2)
   })
 
   it('ends the session on 401', async () => {

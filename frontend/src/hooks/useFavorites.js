@@ -24,7 +24,7 @@ export function useFavorites({ onUnauthorized }) {
     let isStale = false
     apiRequest(FAVORITES_PATH)
       .then((data) => {
-        if (!isStale) setFavorites(data.map(({ pokemon_id, name, opened }) => ({ id: pokemon_id, name, opened: Boolean(opened) })))
+        if (!isStale) setFavorites(data.map(({ pokemon_id, name, opened }) => ({ id: pokemon_id, name, opened: opened !== false })))
       })
       .catch((err) => {
         if (!isStale) handleError(err, 'No pudimos cargar tu colección.')
@@ -36,18 +36,30 @@ export function useFavorites({ onUnauthorized }) {
 
   const isFavorite = useCallback((id) => favorites.some((favorite) => favorite.id === Number(id)), [favorites])
 
+  // One request per Pokémon at a time, so a fast double click can't reach the server out of order
+  const pendingIdsRef = useRef(new Set())
+
   const toggleFavorite = useCallback(
     async (pokemon) => {
       const id = Number(pokemon.id)
-      const wasFavorite = favorites.some((favorite) => favorite.id === id)
-      const previous = favorites
+      if (pendingIdsRef.current.has(id)) return
+      pendingIdsRef.current.add(id)
+      const existing = favorites.find((favorite) => favorite.id === id)
+      const added = { id, name: pokemon.name, opened: false }
+      // Functional updates: rolling back this change never undoes another one made meanwhile
+      const apply = () =>
+        setFavorites((current) => (existing ? current.filter((f) => f.id !== id) : [...current, added]))
+      const rollback = () =>
+        setFavorites((current) => (existing ? [...current, existing] : current.filter((f) => f.id !== id)))
       setError('')
-      setFavorites(wasFavorite ? favorites.filter((f) => f.id !== id) : [...favorites, { id, name: pokemon.name, opened: false }])
+      apply()
       try {
-        await apiRequest(`${FAVORITES_PATH}/${id}`, { method: wasFavorite ? 'DELETE' : 'PUT' })
+        await apiRequest(`${FAVORITES_PATH}/${id}`, { method: existing ? 'DELETE' : 'PUT' })
       } catch (err) {
-        setFavorites(previous)
+        rollback()
         handleError(err, 'No pudimos actualizar tu colección. Intenta de nuevo.')
+      } finally {
+        pendingIdsRef.current.delete(id)
       }
     },
     [favorites, handleError],
