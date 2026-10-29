@@ -5,7 +5,7 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  globalIgnores(['dist', 'test-results', 'playwright-report']),
   {
     files: ['**/*.{js,jsx}'],
     extends: [
@@ -17,5 +17,11 @@ export default defineConfig([
       globals: globals.browser,
       parserOptions: { ecmaFeatures: { jsx: true } },
     },
+  },
+  {
+    files: ['playwright.config.js', 'e2e/**/*.js'],
+    languageOptions: { globals: globals.node },
+    // Playwright fixtures call `use()`, which is not a React hook
+    rules: { 'react-hooks/rules-of-hooks': 'off' },
   },
 ])
