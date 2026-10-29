@@ -16,14 +16,16 @@ a paginated list, search by name or number, a type filter and a detail view.
 - Register, log in and log out (the token is revoked on the server).
 - Session kept across page reloads; an expired or invalid token sends the user back to the login.
 - Form validation in the browser (HTML5) and on the server (Pydantic).
-- Paginated Pokémon list (20 per page) with sprites, skeleton loaders and a staggered entrance.
-- Search by name or Pokédex number with live autocomplete ("pika" → Pikachu), keyboard friendly (`/` focuses it).
-- Filter by type (Fire, Water, Grass…), also paginated.
-- **My collection:** save favorite Pokémon (per user, stored in MongoDB).
+- **Instant filters:** live search by partial name or number (`/` focuses it), multi-select type chips,
+  generation (I–IX and alternate forms), sort order and three card sizes — all in the URL.
+- Gallery cards colored by type, with hover effects; layout changes animate with GSAP Flip.
+- Numbered paginator (24 per page) with first/last and "go to page".
+- **My collection:** favorites per user (MongoDB). A new favorite arrives as a **sealed booster pack**:
+  drag its strip to tear it open (or use the button), and the opened state is saved.
 - **Holographic detail card:** gold-framed artwork with rainbow foil, glitter and glare that follow the pointer
   (or the phone's gyroscope), stat bars, cry, shiny toggle, previous/next with buttons or arrow keys.
 - Shareable URLs: page, type, search and the open Pokémon live in the address bar; Back closes the detail.
-- Dark mode; responsive from 320 px phones to 2560 px screens; WCAG 2.2 AA (checked with axe);
+- Light, dark or system theme; animated aurora background tinted by the selected types; responsive from 320 px phones to 2560 px screens; WCAG 2.2 AA (checked with axe);
   every animation is static under `prefers-reduced-motion`.
 - Friendly error messages (not found, PokéAPI down or slow, invalid credentials, too many login attempts).
 
@@ -40,7 +42,8 @@ test-first implementation, an independent review pass and small Conventional Com
 | Performance | In-memory TTL cache (1 h) for PokéAPI; the detail response shrinks from ~300 KB to ~2 KB. |
 | Features | Favorites, partial-name autocomplete, trimmed detail model (artwork, shiny, cry, units converted). |
 | Security | Failed-login rate limit (5 per email / 20 per IP per minute → 429), constant-time rejection of unknown emails, real client IP through nginx. |
-| Quality | 55 backend tests (pytest), 36 frontend unit tests (Vitest), 28 e2e + accessibility tests (Playwright + axe), GitHub Actions CI. |
+| Quality | 61 backend tests (pytest), 50 frontend unit tests (Vitest), 30 e2e + accessibility tests (Playwright + axe), GitHub Actions CI. |
+| Motion | GSAP Flip grid, booster packs, holo card, aurora background — techniques inspired by a private animation library and re-implemented from scratch; all static under reduced motion. |
 
 ---
 
@@ -216,6 +219,7 @@ Created by the seed script (safe to run more than once):
 | Method | Path | Query | Responses |
 |---|---|---|---|
 | GET | `/api/pokemon` | `limit` (1–50, default 20), `offset` (≥ 0) | 200 `{ count, results }` |
+| GET | `/api/pokemon/index` | — | 200 `[{ id, name, types }]` for every Pokémon (cached; powers the instant filters) |
 | GET | `/api/pokemon/suggest` | `q` (partial name or number), `limit` (1–20, default 8) | 200 `[{ id, name }]` · 422 blank |
 | GET | `/api/pokemon/search` | `name` (name or number) | 200 detail · 404 · 422 blank name |
 | GET | `/api/pokemon/{id_or_name}` | — | 200 detail · 404 |
@@ -225,8 +229,9 @@ Created by the seed script (safe to run more than once):
 
 | Method | Path | Responses |
 |---|---|---|
-| GET | `/api/me/favorites` | 200 `[{ pokemon_id, name, added_at }]` (oldest first) |
+| GET | `/api/me/favorites` | 200 `[{ pokemon_id, name, added_at, opened }]` (oldest first) |
 | PUT | `/api/me/favorites/{pokemon_id}` | 200 favorite (idempotent) · 404 unknown Pokémon · 422 invalid id |
+| POST | `/api/me/favorites/{pokemon_id}/open` | 200 favorite with `opened: true` · 404 not a favorite |
 | DELETE | `/api/me/favorites/{pokemon_id}` | 204 (idempotent) |
 
 The detail model is `{ id, name, types, height_m, weight_kg, abilities[{name, is_hidden}], stats[{name, value}],
@@ -245,7 +250,7 @@ Database `pokedex`:
 |---|---|---|
 | `users` | `{ _id, email, password_hash }` | `email` unique |
 | `revoked_tokens` | `{ _id: <token jti>, expires_at }` | `expires_at` TTL (MongoDB deletes each entry when the token would have expired anyway) |
-| `favorites` | `{ user_id, pokemon_id, name, added_at }` | `(user_id, pokemon_id)` unique · `(user_id, added_at)` |
+| `favorites` | `{ user_id, pokemon_id, name, added_at, opened }` | `(user_id, pokemon_id)` unique · `(user_id, added_at)` |
 
 Indexes are created on startup (FastAPI lifespan). Passwords are never stored in plain text.
 
