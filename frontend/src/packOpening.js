@@ -14,12 +14,12 @@ const FLASH_LEG_SECONDS = 0.15
 const PARTICLE_COUNT = 24
 const PARTICLE_RADIUS_PX = 160
 const PARTICLE_SECONDS = 0.6
+const BURST_SECONDS = 0.35
+const BURST_SCALE = 1.2
 const FLIP_IN_SECONDS = 0.6
 const FLIP_IN_EASE = 'back.out(1.4)'
-const FLIP_IN_FROM_DEGREES = -110
-const FLIP_IN_FROM_SCALE = 0.7
+const FLIP_IN_FROM_DEGREES = 180
 const PERSPECTIVE_PX = 800
-const FOIL_SWEEP_SECONDS = 0.9
 const HOLD_SECONDS = 0.6
 const VIBRATE_PATTERN = [40, 30, 80]
 
@@ -32,15 +32,15 @@ const STAGE_PACK_MAX_WIDTH_PX = 352
 
 const BACKDROP_COLOR = 'rgb(2 6 23 / 0.85)'
 const BACKDROP_CLEAR = 'rgb(2 6 23 / 0)'
-const TORN_CLASS = 'booster--torn'
 const FLASH_CLASS = 'pack-stage-flash'
 const PARTICLE_CLASS = 'pack-stage-particle'
-const SHEEN_CLASS = 'pack-stage-sheen'
+const FOIL_SWEEP_ATTRIBUTE = 'data-foil-sweep'
 
 // Strategy pattern: BoosterPack receives this as its playOpening prop, so its tests inject a fake.
-// Reduced motion gets only the reveal fade; the full sequence flies a copy of the pack through the stage.
+// Reduced motion gets only the card's fade in the slot. The full sequence flies a copy of the pack to the
+// stage, then hands over to the revealed card, which flies back into the slot.
 export function playPackOpening({ pack, stage, slot, card, reducedMotion }) {
-  return reducedMotion ? fadeInReveal({ pack, card }) : playFullSequence({ pack, stage, slot })
+  return reducedMotion ? fadeCardIntoSlot({ card, slot }) : playFullSequence({ pack, stage, slot, card })
 }
 
 // The largest 5:7 pack that fits the stage, centered in it
@@ -70,37 +70,35 @@ function tween(target, from, to) {
   })
 }
 
-async function fadeInReveal({ pack, card }) {
-  pack.classList.add(TORN_CLASS)
+async function fadeCardIntoSlot({ card, slot }) {
+  placeFixed(card, slot.getBoundingClientRect())
   await tween(card, { opacity: 0 }, { opacity: 1, duration: REDUCED_FADE_SECONDS })
 }
 
-async function playFullSequence({ pack, stage, slot }) {
+async function playFullSequence({ pack, stage, slot, card }) {
   const clone = startClone(pack, stage)
+  const centered = centeredRect(stage.getBoundingClientRect())
   try {
-    await Promise.all([flyTo(clone, centeredRect(stage.getBoundingClientRect())), dimBackdrop(stage)])
+    await Promise.all([flyTo(clone, centered), dimBackdrop(stage)])
     vibratePack()
     await Promise.all([shake(stage), flash(stage), burstParticles(stage, pack)])
-    clone.classList.add(TORN_CLASS)
-    await Promise.all([flipIn(clone), sweepFoil(clone)])
+    placeFixed(card, centered)
+    await Promise.all([burstAway(clone), flipCardIn(card)])
     await hold()
-    await flyTo(clone, slot.getBoundingClientRect())
-    pack.classList.add(TORN_CLASS)
+    await flyTo(card, slot.getBoundingClientRect())
   } finally {
-    pack.style.visibility = ''
     stage.style.removeProperty('background-color')
     clone.remove()
   }
 }
 
-// The original pack stays in the list (hidden) so React keeps owning its node; the clone does the work
+// BoosterPack hides the original pack while the opening runs; the clone is the pack that travels
 function startClone(pack, stage) {
   const clone = pack.cloneNode(true)
-  // The .booster transition would lag behind every frame GSAP writes
-  clone.style.transition = 'none'
+  // The original is hidden by React's style; the copy must not inherit that
+  clone.style.visibility = ''
   placeFixed(clone, pack.getBoundingClientRect())
   stage.append(clone)
-  pack.style.visibility = 'hidden'
   return clone
 }
 
@@ -112,6 +110,8 @@ function placeFixed(element, rect) {
     width: `${rect.width}px`,
     height: `${rect.height}px`,
     margin: '0',
+    // A CSS transition would lag behind every frame GSAP writes
+    transition: 'none',
   })
 }
 
@@ -165,18 +165,18 @@ function burstParticles(stage, pack) {
   )
 }
 
-function flipIn(clone) {
-  return tween(
-    clone,
-    { rotationY: FLIP_IN_FROM_DEGREES, scale: FLIP_IN_FROM_SCALE, transformPerspective: PERSPECTIVE_PX },
-    { rotationY: 0, scale: 1, transformPerspective: PERSPECTIVE_PX, duration: FLIP_IN_SECONDS, ease: FLIP_IN_EASE },
-  )
+// The pack bursts outward and fades while the card flips in
+function burstAway(clone) {
+  return tween(clone, { scale: 1, opacity: 1 }, { scale: BURST_SCALE, opacity: 0, duration: BURST_SECONDS, ease: 'power2.in' })
 }
 
-async function sweepFoil(clone) {
-  const sheen = appendElement(clone, SHEEN_CLASS)
-  await tween(sheen, { backgroundPosition: '100% 0' }, { backgroundPosition: '0% 0', duration: FOIL_SWEEP_SECONDS })
-  sheen.remove()
+function flipCardIn(card) {
+  card.setAttribute(FOIL_SWEEP_ATTRIBUTE, '')
+  return tween(
+    card,
+    { rotationY: FLIP_IN_FROM_DEGREES, opacity: 0, transformPerspective: PERSPECTIVE_PX },
+    { rotationY: 0, opacity: 1, transformPerspective: PERSPECTIVE_PX, duration: FLIP_IN_SECONDS, ease: FLIP_IN_EASE },
+  )
 }
 
 function hold() {

@@ -11,6 +11,8 @@ export const POKEMON_TYPES = Object.keys(POKEMON_TYPE_COLORS)
 
 export const DEFAULT_TYPE_COLOR = POKEMON_TYPE_COLORS.normal
 
+export const typeColor = (type) => POKEMON_TYPE_COLORS[type] ?? DEFAULT_TYPE_COLOR
+
 const DARK_TEXT = '#0f172a'
 const LIGHT_TEXT = '#ffffff'
 

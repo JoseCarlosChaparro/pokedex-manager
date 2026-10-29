@@ -1,19 +1,13 @@
-import { useTranslation } from 'react-i18next'
-import { DEFAULT_TYPE_COLOR, POKEMON_TYPE_COLORS } from '../pokemonTypes'
-import { artworkUrl, spriteUrl } from '../sprites'
+import { typeColor } from '../pokemonTypes'
 import FavoriteButton from './FavoriteButton'
+import PokemonCardFace from './PokemonCardFace'
 
 const STAGGER_MS = 25
 const MAX_STAGGERED = 24
 
-const typeColor = (type) => POKEMON_TYPE_COLORS[type] ?? DEFAULT_TYPE_COLOR
-
 export default function PokemonCard({ pokemon, index, density, isFavorite, onOpen, onToggleFavorite }) {
-  const { t } = useTranslation()
   const [primary, secondary = primary] = pokemon.types ?? []
-  const isLarge = density === 'large'
   const isCompact = density === 'compact'
-  const name = pokemon.name.replaceAll('-', ' ')
 
   return (
     <li
@@ -31,33 +25,7 @@ export default function PokemonCard({ pokemon, index, density, isFavorite, onOpe
         onClick={(event) => onOpen(pokemon, event.currentTarget.querySelector('img'))}
         className={`pokemon-card group w-full text-left ${isCompact ? 'p-2' : 'p-3'}`}
       >
-        <span aria-hidden="true" className="pokemon-card__number">
-          {String(pokemon.id).padStart(isCompact ? 1 : 3, '0')}
-        </span>
-        <span aria-hidden="true" className="pokemon-card__glow" />
-        <img
-          src={isLarge ? artworkUrl(pokemon.id) : spriteUrl(pokemon.id)}
-          alt=""
-          loading="lazy"
-          width={isLarge ? 200 : 96}
-          height={isLarge ? 200 : 96}
-          className={`pokemon-card__sprite relative mx-auto ${isLarge ? 'h-44 w-44' : isCompact ? 'h-16 w-16 [image-rendering:pixelated]' : 'h-24 w-24 [image-rendering:pixelated]'}`}
-        />
-        <span className="relative block text-xs font-semibold text-slate-700 dark:text-slate-200">
-          #{String(pokemon.id).padStart(4, '0')}
-        </span>
-        <span className={`relative block truncate font-bold capitalize ${isLarge ? 'text-xl' : isCompact ? 'text-sm' : ''}`}>
-          {name}
-        </span>
-        {!isCompact && pokemon.types && (
-          <span className="relative mt-1.5 flex flex-wrap gap-1">
-            {pokemon.types.map((type) => (
-              <span key={type} className="pokemon-card__type" style={{ '--type': typeColor(type) }}>
-                {t(`types.${type}`, { defaultValue: type })}
-              </span>
-            ))}
-          </span>
-        )}
+        <PokemonCardFace pokemon={pokemon} density={density} />
       </button>
       <FavoriteButton
         pokemon={pokemon}

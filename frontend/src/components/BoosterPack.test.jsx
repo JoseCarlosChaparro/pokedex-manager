@@ -5,10 +5,17 @@ import BoosterPack from './BoosterPack'
 
 const PIKACHU = { id: 25, name: 'pikachu', types: ['electric'] }
 const OPEN_BUTTON = /abrir sobre/i
+const pendingOpening = () => {
+  const opening = {}
+  opening.playOpening = vi.fn(() => new Promise((resolve) => (opening.finish = resolve)))
+  return opening
+}
 
 // The opening is injected so the real GSAP timeline never runs in jsdom
 function renderPack({ playOpening = vi.fn(() => Promise.resolve()), onOpen = vi.fn() } = {}) {
-  const view = render(<BoosterPack pokemon={PIKACHU} position={1} onOpen={onOpen} playOpening={playOpening} />)
+  const view = render(
+    <BoosterPack pokemon={PIKACHU} position={1} density="comfy" onOpen={onOpen} playOpening={playOpening} />,
+  )
   return { ...view, onOpen, playOpening }
 }
 
@@ -25,14 +32,13 @@ function dragStripTo(container, releaseX) {
 }
 
 describe('BoosterPack', () => {
-  it('hides the Pokémon until the pack is opened with the button', async () => {
+  it('keeps the Pokémon hidden until the pack is opened with the button', async () => {
     const { onOpen } = renderPack()
-    expect(screen.getByText('pikachu').closest('.booster__reveal')).toHaveAttribute('aria-hidden', 'true')
+    expect(screen.queryByText('pikachu')).not.toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('button', { name: 'Abrir sobre 1' }))
 
-    await vi.waitFor(() => expect(onOpen).toHaveBeenCalledWith(PIKACHU))
-    expect(screen.getByRole('button', OPEN_BUTTON)).toBeDisabled()
+    await vi.waitFor(() => expect(onOpen).toHaveBeenCalledWith(PIKACHU, expect.anything()))
   })
 
   it('does not reveal the Pokémon in the button name', () => {
@@ -50,24 +56,46 @@ describe('BoosterPack', () => {
       button.click()
     })
 
-    await vi.waitFor(() => expect(onOpen).toHaveBeenCalledWith(PIKACHU))
+    await vi.waitFor(() => expect(onOpen).toHaveBeenCalledWith(PIKACHU, expect.anything()))
     expect(playOpening).toHaveBeenCalledTimes(1)
     expect(onOpen).toHaveBeenCalledTimes(1)
   })
 
   it('does not open the pack after it unmounts mid-opening', async () => {
-    let finishOpening
-    const playOpening = vi.fn(() => new Promise((resolve) => (finishOpening = resolve)))
-    const { onOpen, unmount } = renderPack({ playOpening })
+    const opening = pendingOpening()
+    const { onOpen, unmount } = renderPack({ playOpening: opening.playOpening })
     await userEvent.click(screen.getByRole('button', OPEN_BUTTON))
 
     unmount()
-    await act(async () => finishOpening())
+    await act(async () => opening.finish())
 
     expect(onOpen).not.toHaveBeenCalled()
   })
 
-  it('passes the pack, slot, stage and reveal elements to the opening', async () => {
+  it('still opens the pack when the animation fails', async () => {
+    const playOpening = vi.fn(() => Promise.reject(new Error('boom')))
+    const { onOpen } = renderPack({ playOpening })
+
+    await userEvent.click(screen.getByRole('button', OPEN_BUTTON))
+
+    await vi.waitFor(() => expect(onOpen).toHaveBeenCalledWith(PIKACHU, expect.anything()))
+    expect(onOpen).toHaveBeenCalledTimes(1)
+    expect(screen.getByRole('button', OPEN_BUTTON)).toBeEnabled()
+  })
+
+  it('shows the revealed card in the stage only while the pack opens', async () => {
+    const opening = pendingOpening()
+    renderPack({ playOpening: opening.playOpening })
+    expect(document.querySelector('.holo-reveal-card')).not.toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', OPEN_BUTTON))
+    expect(document.querySelector('.holo-reveal-card')).toHaveTextContent('pikachu')
+
+    await act(async () => opening.finish())
+    expect(document.querySelector('.holo-reveal-card')).not.toBeInTheDocument()
+  })
+
+  it('passes the pack, slot, stage and card elements to the opening', async () => {
     const { container, playOpening } = renderPack()
     await userEvent.click(screen.getByRole('button', OPEN_BUTTON))
 
@@ -76,7 +104,7 @@ describe('BoosterPack', () => {
       expect.objectContaining({
         pack,
         slot: pack.parentElement,
-        card: container.querySelector('.booster__reveal'),
+        card: expect.any(HTMLElement),
         stage: expect.any(HTMLElement),
       }),
     )
@@ -96,8 +124,9 @@ describe('BoosterPack', () => {
     expect(playOpening).toHaveBeenCalledWith(expect.objectContaining({ reducedMotion: true }))
   })
 
-  it('resets the tilt when the opening starts and ignores later tilt moves', async () => {
-    const { container } = renderPack()
+  it('resets the tilt when the opening starts and ignores tilt moves while it runs', async () => {
+    const opening = pendingOpening()
+    const { container } = renderPack({ playOpening: opening.playOpening })
     const pack = container.querySelector('.booster')
     pack.style.setProperty('--rx', '3deg')
 
@@ -105,6 +134,26 @@ describe('BoosterPack', () => {
     fireEvent.pointerMove(pack, { clientX: 10, clientY: 10, pointerType: 'mouse' })
 
     expect(pack.style.getPropertyValue('--rx')).toBe('0deg')
+  })
+
+  it('asks to move focus to the new card when the pack was opened with keyboard focus', async () => {
+    const { onOpen } = renderPack()
+    const button = screen.getByRole('button', OPEN_BUTTON)
+
+    act(() => {
+      button.focus()
+      button.click()
+    })
+
+    await vi.waitFor(() => expect(onOpen).toHaveBeenCalledWith(PIKACHU, { restoreFocus: true }))
+  })
+
+  it('does not move focus for a mouse click', async () => {
+    const { onOpen } = renderPack()
+
+    await userEvent.click(screen.getByRole('button', OPEN_BUTTON))
+
+    await vi.waitFor(() => expect(onOpen).toHaveBeenCalledWith(PIKACHU, { restoreFocus: false }))
   })
 
   it('tears toward the drag direction', () => {
@@ -119,7 +168,7 @@ describe('BoosterPack', () => {
 
     dragStripTo(container, 190)
 
-    await vi.waitFor(() => expect(onOpen).toHaveBeenCalledWith(PIKACHU))
+    await vi.waitFor(() => expect(onOpen).toHaveBeenCalledWith(PIKACHU, expect.anything()))
     expect(playOpening).toHaveBeenCalledTimes(1)
     expect(onOpen).toHaveBeenCalledTimes(1)
   })
