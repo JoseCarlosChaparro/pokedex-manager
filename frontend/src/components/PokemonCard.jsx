@@ -8,7 +8,8 @@ const MAX_STAGGERED = 24
 // Phone grids show 1 to 3 columns, so the first three cards cover the first row on every phone layout
 const FIRST_ROW_LENGTH = 3
 
-export default function PokemonCard({ pokemon, index, density, isFavorite, onOpen, onToggleFavorite }) {
+// skipEnter: the card a pack has just revealed already showed itself on the stage, so it does not fade in again
+export default function PokemonCard({ pokemon, index, density, isFavorite, onOpen, onToggleFavorite, skipEnter = false }) {
   const [primary, secondary = primary] = pokemon.types ?? []
   const isFirstRow = index < FIRST_ROW_LENGTH
 
@@ -16,7 +17,7 @@ export default function PokemonCard({ pokemon, index, density, isFavorite, onOpe
     <li
       data-flip-id={pokemon.id}
       data-pokemon-id={pokemon.id}
-      className="card-enter relative"
+      className={skipEnter ? 'relative' : 'card-enter relative'}
       style={{
         animationDelay: `${Math.min(index, MAX_STAGGERED) * STAGGER_MS}ms`,
         '--c1': typeColor(primary),

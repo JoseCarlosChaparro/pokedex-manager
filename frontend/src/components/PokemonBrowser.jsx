@@ -153,7 +153,9 @@ export default function PokemonBrowser({ onUnauthorized, playTransition = playVi
   // The opened pack unmounts, taking its own live region with it: the browser announces and restores focus
   const [announcement, setAnnouncement] = useState('')
   const focusCardIdRef = useRef(null)
+  const [revealedId, setRevealedId] = useState(null)
   function handlePackOpen(pokemon, { restoreFocus }) {
+    setRevealedId(pokemon.id)
     openPack(pokemon)
     setAnnouncement(t('pack.joined', { name: pokemon.name.replaceAll('-', ' ') }))
     focusCardIdRef.current = restoreFocus ? pokemon.id : null
@@ -229,6 +231,7 @@ export default function PokemonBrowser({ onUnauthorized, playTransition = playVi
                     index={i}
                     density={url.density}
                     isFavorite={isFavorite(pokemon.id)}
+                    skipEnter={pokemon.id === revealedId}
                     onOpen={openPokemon}
                     onToggleFavorite={handleToggleFavorite}
                   />
