@@ -12,6 +12,7 @@ class Settings:
     cors_origins: tuple[str, ...] = ("http://localhost:5173",)
     pokeapi_base_url: str = "https://pokeapi.co/api/v2"
     pokeapi_timeout_seconds: float = 10.0
+    pokeapi_cache_ttl_seconds: float = 60 * 60
 
     @classmethod
     def from_env(cls) -> "Settings":

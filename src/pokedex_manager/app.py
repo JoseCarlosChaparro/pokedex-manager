@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pymongo import AsyncMongoClient
 
+from pokedex_manager.cache import TTLCache
 from pokedex_manager.clock import Clock, system_clock
 from pokedex_manager.config import Settings
 from pokedex_manager.exceptions.pokeapi import (
@@ -50,7 +51,9 @@ def create_app(
         app.state.users = UserRepository(database)
         app.state.revoked_tokens = RevokedTokenRepository(database)
         app.state.tokens = TokenService(settings.jwt_secret_key, clock)
-        app.state.pokeapi = PokeAPIClient(http_client, settings.pokeapi_base_url)
+        app.state.pokeapi = PokeAPIClient(
+            http_client, settings.pokeapi_base_url, TTLCache(settings.pokeapi_cache_ttl_seconds, clock)
+        )
 
         await app.state.users.ensure_indexes()
         await app.state.revoked_tokens.ensure_indexes()

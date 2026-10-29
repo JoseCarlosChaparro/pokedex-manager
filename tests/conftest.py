@@ -30,6 +30,7 @@ def settings() -> Settings:
         mongo_db_name=f"pokedex_test_{uuid.uuid4().hex[:8]}",
         jwt_secret_key="test-secret-key-with-enough-length-1234",
         pokeapi_base_url=FAKE_POKEAPI_BASE_URL,
+        pokeapi_cache_ttl_seconds=60,
     )
 
 
