@@ -679,6 +679,45 @@ body {
   }
 }
 
+/* Reduced motion: the tear drops out without sliding; only the reveal fades (packOpening.js) */
+@media (prefers-reduced-motion: reduce) {
+  .booster--torn .booster__strip,
+  .booster--torn .booster__body,
+  .booster--torn .booster__reveal {
+    transition: none;
+  }
+}
+
+/* ── Pack opening stage: the elements packOpening.js adds to the stage and removes again ──── */
+.pack-stage-flash {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background: radial-gradient(circle, #fff 0%, color-mix(in srgb, var(--color-brand-500) 60%, transparent) 45%, transparent 70%);
+}
+
+.pack-stage-particle {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0.5rem;
+  height: 0.5rem;
+  margin: -0.25rem;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--particle-color) 70%, var(--color-brand-400));
+  box-shadow: 0 0 10px var(--color-brand-500);
+}
+
+/* Foil sheen that sweeps across the revealed card */
+.pack-stage-sheen {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(115deg, transparent 40%, rgb(255 255 255 / 0.45) 50%, transparent 60%) 100% 0 / 250% 100% no-repeat;
+}
+
 /* ── Detail opening: the card flips in like being turned over ─────────────────────────────── */
 @keyframes backdrop-in {
   from {
