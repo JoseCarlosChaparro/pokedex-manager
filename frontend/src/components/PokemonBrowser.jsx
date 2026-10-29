@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { flyToCollection } from '../flyToCollection'
 import { useFavorites } from '../hooks/useFavorites'
 import { useFlipGrid } from '../hooks/useFlipGrid'
@@ -7,7 +7,6 @@ import { useUrlState } from '../hooks/useUrlState'
 import { filterPokedex, paginate } from '../pokedexFilter'
 import { POKEMON_TYPE_COLORS } from '../pokemonTypes'
 import { VIEWS } from '../urlState'
-import { morphImage } from '../viewTransition'
 import AuroraBackground from './AuroraBackground'
 import BoosterPack from './BoosterPack'
 import FilterBar from './FilterBar'
@@ -23,7 +22,7 @@ const GRID_COLUMNS = {
   large: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6',
 }
 
-const cardImage = (id) => document.querySelector(`[data-pokemon-id="${id}"] img`)
+const cardButton = (id) => document.querySelector(`[data-pokemon-id="${id}"] button`)
 
 export default function PokemonBrowser({ onUnauthorized }) {
   const [url, setUrl] = useUrlState()
@@ -54,16 +53,35 @@ export default function PokemonBrowser({ onUnauthorized }) {
     toggleFavorite(pokemon)
   }
 
-  const openPokemon = (pokemon) => setUrl({ pokemon: String(pokemon.id) })
+  // Opening pushes a history entry; closing goes back to it, so Back after closing leaves the page cleanly.
+  // A detail reached by a shared link has no entry of ours to go back to, so closing replaces instead.
+  const openedInAppRef = useRef(false)
+  const openPokemon = (pokemon) => {
+    openedInAppRef.current = true
+    setUrl({ pokemon: String(pokemon.id) })
+  }
   const closePokemon = () => {
-    const id = url.pokemon
-    const detailImage = document.querySelector('[data-detail-art]')
-    morphImage(() => setUrl({ pokemon: null }), { from: detailImage, to: () => cardImage(id) }).then(() =>
-      // Return keyboard focus to the card that opened the detail
-      document.querySelector(`[data-pokemon-id="${id}"] button`)?.focus(),
-    )
+    if (openedInAppRef.current) window.history.back()
+    else setUrl({ pokemon: null }, { replace: true })
+    openedInAppRef.current = false
   }
   const showPokemon = (id) => setUrl({ pokemon: String(id) }, { replace: true })
+
+  // Whatever closed the detail (button, Escape, backdrop, browser Back), return focus to its card
+  const lastOpenedRef = useRef(url.pokemon)
+  useEffect(() => {
+    if (url.pokemon) {
+      lastOpenedRef.current = url.pokemon
+      return
+    }
+    if (lastOpenedRef.current) cardButton(lastOpenedRef.current)?.focus()
+    lastOpenedRef.current = null
+  }, [url.pokemon])
+
+  // Keep the URL honest when a page number is out of range (e.g. after filtering)
+  useEffect(() => {
+    if (!isLoading && url.page !== page) setUrl({ page }, { replace: true })
+  }, [isLoading, url.page, page, setUrl])
 
   const auroraColors = url.types.map((type) => POKEMON_TYPE_COLORS[type])
   const sealedCount = favorites.filter((favorite) => !favorite.opened).length
@@ -118,7 +136,7 @@ export default function PokemonBrowser({ onUnauthorized }) {
           ? Array.from({ length: PAGE_SIZE }, (_, i) => <PokemonCardSkeleton key={i} />)
           : items.map((pokemon, i) =>
               isFavoritesView && pokemon.opened === false ? (
-                <BoosterPack key={`pack-${pokemon.id}`} pokemon={pokemon} onOpen={openPack} />
+                <BoosterPack key={`pack-${pokemon.id}`} pokemon={pokemon} position={(page - 1) * PAGE_SIZE + i + 1} onOpen={openPack} />
               ) : (
                 <PokemonCard
                   key={pokemon.id}

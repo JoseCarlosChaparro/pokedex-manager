@@ -1,7 +1,7 @@
 import { gsap } from 'gsap'
 import { Flip } from 'gsap/Flip'
 import { useCallback, useLayoutEffect, useRef } from 'react'
-import { prefersReducedMotion } from '../viewTransition'
+import { prefersReducedMotion } from '../motion'
 
 gsap.registerPlugin(Flip)
 
@@ -14,7 +14,14 @@ export function useFlipGrid(containerRef, layoutKey) {
 
   const capture = useCallback(() => {
     if (prefersReducedMotion() || !containerRef.current) return
-    stateRef.current = Flip.getState(containerRef.current.querySelectorAll(FLIP_SELECTOR))
+    const state = Flip.getState(containerRef.current.querySelectorAll(FLIP_SELECTOR))
+    stateRef.current = state
+    // If the change doesn't alter the layout no render consumes it; drop it so a later change can't use it
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        if (stateRef.current === state) stateRef.current = null
+      }),
+    )
   }, [containerRef])
 
   useLayoutEffect(() => {
