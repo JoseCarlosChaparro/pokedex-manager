@@ -43,7 +43,7 @@ export default function PokemonDetail({ pokemonId, onClose, onUnauthorized }) {
         onClick={(event) => event.stopPropagation()}
         className="max-h-full w-full max-w-md overflow-y-auto rounded-xl bg-white p-6 shadow-lg"
       >
-        <button onClick={onClose} aria-label="Cerrar" className="float-right h-8 w-8 text-2xl leading-none">
+        <button autoFocus onClick={onClose} aria-label="Cerrar" className="float-right h-8 w-8 text-2xl leading-none">
           ×
         </button>
 

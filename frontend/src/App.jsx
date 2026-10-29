@@ -22,7 +22,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-100">
-      <header className="flex items-center justify-between bg-red-500 px-4 py-3 text-white">
+      <header className="flex items-center justify-between gap-2 bg-red-500 px-4 py-3 text-white">
         <h1 className="text-xl font-bold">PokéDex Manager</h1>
         <button onClick={handleLogout} className="rounded border border-white px-3 py-1 text-sm">
           Cerrar sesión
