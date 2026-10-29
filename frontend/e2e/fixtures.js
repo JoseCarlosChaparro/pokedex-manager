@@ -24,6 +24,8 @@ export const pokemonCards = (page) => page.locator('[data-pokemon-id]')
 
 // The filter panel starts collapsed below md; open it only when the toggle is shown
 export async function openFilters(page) {
+  // The browser is lazy-loaded: wait for its filter card to exist before checking the toggle
+  await page.getByRole('heading', { name: 'Filtros' }).waitFor()
   const toggle = page.getByRole('button', { name: /^Filtros/ })
   if ((await toggle.isVisible()) && (await toggle.getAttribute('aria-expanded')) === 'false') {
     await toggle.click()
