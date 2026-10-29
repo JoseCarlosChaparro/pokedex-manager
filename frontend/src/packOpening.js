@@ -22,6 +22,8 @@ const FLIP_IN_FROM_DEGREES = 180
 const PERSPECTIVE_PX = 800
 const HOLD_SECONDS = 0.6
 const VIBRATE_PATTERN = [40, 30, 80]
+// A cold cache can leave the revealed sprite undecoded: the card waits this long at most, then flips in anyway
+const SPRITE_DECODE_WAIT_MS = 400
 
 // The booster is 5:7 (width:height). The centered pack keeps 72% of the stage width, and
 // 70% of its height on short landscape screens, capped so it never outgrows a 2K display.
@@ -64,6 +66,15 @@ export function vibratePack() {
   if (typeof navigator.vibrate === 'function') navigator.vibrate(VIBRATE_PATTERN)
 }
 
+// Resolves once the revealed sprite is decoded, so the card never flips in showing an empty frame.
+// A failed decode or a slow download does not stall the opening past the wait.
+export function waitForSpriteDecode(card) {
+  const sprite = card.querySelector('img')
+  if (!sprite?.decode) return Promise.resolve()
+  const timeout = new Promise((resolve) => setTimeout(resolve, SPRITE_DECODE_WAIT_MS))
+  return Promise.race([sprite.decode().catch(() => {}), timeout])
+}
+
 function tween(target, from, to) {
   return new Promise((resolve) => {
     gsap.fromTo(target, from, { ...to, onComplete: resolve })
@@ -72,18 +83,21 @@ function tween(target, from, to) {
 
 async function fadeCardIntoSlot({ card, slot }) {
   placeFixed(card, slot.getBoundingClientRect())
+  await waitForSpriteDecode(card)
   await tween(card, { opacity: 0 }, { opacity: 1, duration: REDUCED_FADE_SECONDS })
 }
 
 async function playFullSequence({ pack, stage, slot, card }) {
   const clone = startClone(pack, stage)
   const centered = centeredRect(stage.getBoundingClientRect())
+  // Decoding starts now, so it overlaps the flight and the card flips in once its sprite is ready
+  const spriteReady = waitForSpriteDecode(card)
   try {
     await Promise.all([flyTo(clone, centered), dimBackdrop(stage)])
     vibratePack()
     await Promise.all([shake(stage), flash(stage), burstParticles(stage, pack)])
     placeFixed(card, centered)
-    await Promise.all([burstAway(clone), flipCardIn(card)])
+    await Promise.all([burstAway(clone), spriteReady.then(() => flipCardIn(card))])
     await hold()
     await flyTo(card, slot.getBoundingClientRect())
   } finally {

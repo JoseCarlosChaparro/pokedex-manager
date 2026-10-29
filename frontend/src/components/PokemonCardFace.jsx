@@ -4,8 +4,8 @@ import { artworkUrl, spriteUrl } from '../sprites'
 
 // The visible face of a Pokémon card: number, artwork, id, name and types. It has no buttons or handlers,
 // so the card revealed by a pack and the collection card show exactly the same face.
-// isFirstRow: the sprite is above the fold, so it loads eagerly with high priority instead of lazily
-export default function PokemonCardFace({ pokemon, density, isFirstRow = false }) {
+// isAboveFold: the sprite is visible on arrival, so it loads eagerly with high priority instead of lazily
+export default function PokemonCardFace({ pokemon, density, isAboveFold = false }) {
   const { t } = useTranslation()
   const isLarge = density === 'large'
   const isCompact = density === 'compact'
@@ -21,8 +21,8 @@ export default function PokemonCardFace({ pokemon, density, isFirstRow = false }
         <img
           src={isLarge ? artworkUrl(pokemon.id) : spriteUrl(pokemon.id)}
           alt=""
-          loading={isFirstRow ? undefined : 'lazy'}
-          fetchPriority={isFirstRow ? 'high' : undefined}
+          loading={isAboveFold ? 'eager' : 'lazy'}
+          fetchPriority={isAboveFold ? 'high' : undefined}
           decoding="async"
           width={isLarge ? 200 : 96}
           height={isLarge ? 200 : 96}

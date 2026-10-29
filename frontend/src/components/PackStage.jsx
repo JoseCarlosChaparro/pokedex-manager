@@ -17,7 +17,7 @@ export default function PackStage({ stageRef, cardRef, pokemon, density, isOpeni
           className={`pokemon-card holo-reveal-card ${cardPadding(density)}`}
           style={{ '--c1': typeColor(primary), '--c2': typeColor(secondary) }}
         >
-          <PokemonCardFace pokemon={pokemon} density={density} />
+          <PokemonCardFace pokemon={pokemon} density={density} isAboveFold />
         </div>
       )}
     </div>,

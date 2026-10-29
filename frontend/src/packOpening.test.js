@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { centeredRect, vibratePack } from './packOpening'
+import { centeredRect, vibratePack, waitForSpriteDecode } from './packOpening'
 
 describe('centeredRect', () => {
   it('fits a portrait stage by width and centers the pack', () => {
@@ -20,6 +20,52 @@ describe('centeredRect', () => {
 
   it('caps the pack size on large displays', () => {
     expect(centeredRect({ left: 0, top: 0, width: 2560, height: 1440 }).width).toBeCloseTo(352)
+  })
+})
+
+const DECODE_WAIT_MS = 400
+
+function cardWithSprite(decode) {
+  const card = document.createElement('div')
+  const img = document.createElement('img')
+  img.decode = decode
+  card.append(img)
+  return card
+}
+
+describe('waitForSpriteDecode', () => {
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it('resolves once the sprite has decoded', async () => {
+    const card = cardWithSprite(vi.fn(() => Promise.resolve()))
+
+    await expect(waitForSpriteDecode(card)).resolves.toBeUndefined()
+  })
+
+  it('stops waiting after the timeout when the sprite decodes slowly', async () => {
+    vi.useFakeTimers()
+    const card = cardWithSprite(() => new Promise(() => {}))
+    let settled = false
+    waitForSpriteDecode(card).then(() => {
+      settled = true
+    })
+
+    await vi.advanceTimersByTimeAsync(DECODE_WAIT_MS - 1)
+    expect(settled).toBe(false)
+    await vi.advanceTimersByTimeAsync(1)
+    expect(settled).toBe(true)
+  })
+
+  it('does not hold the opening back when the sprite fails to decode', async () => {
+    const card = cardWithSprite(vi.fn(() => Promise.reject(new Error('broken image'))))
+
+    await expect(waitForSpriteDecode(card)).resolves.toBeUndefined()
+  })
+
+  it('does not wait when the card has no sprite', async () => {
+    await expect(waitForSpriteDecode(document.createElement('div'))).resolves.toBeUndefined()
   })
 })
 

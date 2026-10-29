@@ -29,7 +29,7 @@ export default function PokemonCard({ pokemon, index, density, isFavorite, onOpe
         onClick={(event) => onOpen(pokemon, event.currentTarget.querySelector('img'))}
         className={`pokemon-card group w-full text-left ${cardPadding(density)}`}
       >
-        <PokemonCardFace pokemon={pokemon} density={density} isFirstRow={isFirstRow} />
+        <PokemonCardFace pokemon={pokemon} density={density} isAboveFold={isFirstRow} />
       </button>
       <FavoriteButton
         pokemon={pokemon}

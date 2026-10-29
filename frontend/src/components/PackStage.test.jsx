@@ -21,6 +21,12 @@ describe('PackStage pointer events', () => {
     expect(stage).toHaveAttribute('aria-hidden', 'true')
   })
 
+  it('loads the revealed sprite eagerly, so it is ready before the flip-in', () => {
+    const stage = renderStage(true)
+
+    expect(stage.querySelector('img')).toHaveAttribute('loading', 'eager')
+  })
+
   it('lets clicks through when no opening runs', () => {
     expect(renderStage(false)).toHaveClass('pointer-events-none')
   })
