@@ -1,7 +1,7 @@
 from datetime import UTC, datetime
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Path, status
+from fastapi import APIRouter, Depends, HTTPException, Path, status
 
 from pokedex_manager.clock import Clock
 from pokedex_manager.dependencies import get_clock, get_current_user_id, get_favorites, get_pokeapi
@@ -32,6 +32,14 @@ async def add_favorite(
     pokemon = await pokeapi.get_pokemon(pokemon_id)
     added_at = datetime.fromtimestamp(clock(), tz=UTC)
     return await favorites.add(user_id, pokemon_id, pokemon.name, added_at)
+
+
+@router.post("/{pokemon_id}/open", response_model=Favorite)
+async def open_favorite_pack(pokemon_id: PokemonId, user_id: UserId, favorites: Favorites):
+    favorite = await favorites.mark_opened(user_id, pokemon_id)
+    if favorite is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Pokémon is not in your collection")
+    return favorite
 
 
 @router.delete("/{pokemon_id}", status_code=status.HTTP_204_NO_CONTENT)

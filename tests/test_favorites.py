@@ -88,3 +88,30 @@ async def test_concurrent_adds_of_the_same_favorite_do_not_fail(settings):
 
         assert len(await repository.list_for_user("u1")) == 1
         await mongo.drop_database(settings.mongo_db_name)
+
+
+def test_new_favorites_arrive_as_sealed_packs(client, auth_headers):
+    response = client.put(f"{FAVORITES_URL}/25", headers=auth_headers)
+
+    assert response.json()["opened"] is False
+
+
+def test_opening_a_pack_is_remembered(client, auth_headers):
+    client.put(f"{FAVORITES_URL}/25", headers=auth_headers)
+
+    response = client.post(f"{FAVORITES_URL}/25/open", headers=auth_headers)
+
+    assert response.status_code == 200
+    assert response.json()["opened"] is True
+    assert client.get(FAVORITES_URL, headers=auth_headers).json()[0]["opened"] is True
+
+
+def test_re_adding_an_opened_favorite_keeps_it_opened(client, auth_headers):
+    client.put(f"{FAVORITES_URL}/25", headers=auth_headers)
+    client.post(f"{FAVORITES_URL}/25/open", headers=auth_headers)
+
+    assert client.put(f"{FAVORITES_URL}/25", headers=auth_headers).json()["opened"] is True
+
+
+def test_opening_a_pokemon_that_is_not_a_favorite_is_404(client, auth_headers):
+    assert client.post(f"{FAVORITES_URL}/25/open", headers=auth_headers).status_code == 404

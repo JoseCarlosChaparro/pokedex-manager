@@ -24,5 +24,13 @@ class FavoriteRepository:
         await self._collection.update_one(key, {"$setOnInsert": {"name": name, "added_at": added_at}}, upsert=True)
         return await self._collection.find_one(key, {"_id": 0, "user_id": 0})
 
+    async def mark_opened(self, user_id: str, pokemon_id: int) -> dict | None:
+        """Opens the sealed pack of a favorite; None when it is not a favorite."""
+        key = {"user_id": user_id, "pokemon_id": pokemon_id}
+        result = await self._collection.update_one(key, {"$set": {"opened": True}})
+        if result.matched_count == 0:
+            return None
+        return await self._collection.find_one(key, {"_id": 0, "user_id": 0})
+
     async def remove(self, user_id: str, pokemon_id: int) -> None:
         await self._collection.delete_one({"user_id": user_id, "pokemon_id": pokemon_id})
