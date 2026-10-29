@@ -12,15 +12,15 @@ test.describe('browsing', () => {
   test('paginates by number, jumps to the last page and keeps the page in the URL', async ({ page }) => {
     await expect(pokemonCards(page).first()).toContainText(/bulbasaur/i)
 
-    await page.getByRole('button', { name: 'Página 2' }).click()
+    await page.getByRole('button', { name: 'Página siguiente' }).click()
     await expect(page).toHaveURL(/page=2/)
     await expect(pokemonCards(page).first()).toContainText('#0025')
 
     await page.getByRole('button', { name: 'Última página' }).click()
     await expect(page.getByRole('button', { name: 'Última página' })).toBeDisabled()
 
-    await page.getByLabel('Ir a la página').fill('3')
-    await page.getByLabel('Ir a la página').press('Enter')
+    await page.getByRole('textbox', { name: /Página/ }).fill('3')
+    await page.getByRole('textbox', { name: /Página/ }).press('Enter')
     await expect(page).toHaveURL(/page=3/)
   })
 
@@ -71,7 +71,7 @@ test.describe('browsing', () => {
   })
 
   test('closing the detail does not leave it in the history', async ({ page }) => {
-    await page.getByRole('button', { name: 'Página 2' }).click()
+    await page.getByRole('button', { name: 'Página siguiente' }).click()
     await page.getByRole('button', { name: /^#0025 pikachu\b/ }).click()
     await page.getByRole('button', { name: 'Cerrar', exact: true }).click()
     await expect(page.getByRole('dialog')).toBeHidden()
