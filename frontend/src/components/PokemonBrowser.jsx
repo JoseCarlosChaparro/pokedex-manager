@@ -18,9 +18,9 @@ import PokemonDetail from './PokemonDetail'
 const PAGE_SIZE = 24
 
 const GRID_COLUMNS = {
-  compact: 'grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8',
-  comfy: 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6',
-  large: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4',
+  compact: 'grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 2xl:grid-cols-12',
+  comfy: 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-8',
+  large: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6',
 }
 
 const cardImage = (id) => document.querySelector(`[data-pokemon-id="${id}"] img`)
@@ -70,7 +70,7 @@ export default function PokemonBrowser({ onUnauthorized }) {
   const error = indexError || favoritesError
 
   return (
-    <section className="mx-auto max-w-[1600px] px-4 py-6 sm:px-6">
+    <section className="mx-auto max-w-[1920px] px-4 py-6 sm:px-6 2xl:px-10">
       <AuroraBackground colors={auroraColors} />
 
       <div role="group" aria-label="Vista" className="mb-4 inline-flex rounded-2xl bg-white/60 p-1 ring-1 ring-slate-300/70 backdrop-blur dark:bg-slate-800/60 dark:ring-slate-600">
