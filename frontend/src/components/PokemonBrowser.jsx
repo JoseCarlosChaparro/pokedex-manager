@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { flushSync } from 'react-dom'
 import { useTranslation } from 'react-i18next'
-import { flyToCollection } from '../flyToCollection'
+import { COLLECTION_TARGET_SELECTOR, throwPokeBall } from '../flyToCollection'
 import { useFavorites } from '../hooks/useFavorites'
 import { useFlipGrid } from '../hooks/useFlipGrid'
 import { usePokedexIndex } from '../hooks/usePokedexIndex'
@@ -66,8 +66,9 @@ export default function PokemonBrowser({ onUnauthorized, playTransition = playVi
     })
   }
 
-  function handleToggleFavorite(pokemon, image) {
-    if (!isFavorite(pokemon.id)) flyToCollection(image)
+  // Only adding throws a Poké Ball; removing from the collection stays still
+  function handleToggleFavorite(pokemon, heartButton) {
+    if (!isFavorite(pokemon.id)) throwPokeBall(heartButton, document.querySelector(COLLECTION_TARGET_SELECTOR))
     toggleFavorite(pokemon)
   }
 

@@ -62,7 +62,7 @@ export default function PokemonCard({ pokemon, index, density, isFavorite, onOpe
       <FavoriteButton
         pokemon={pokemon}
         isFavorite={isFavorite}
-        onToggle={(_, button) => onToggleFavorite(pokemon, button.closest('li')?.querySelector('img'))}
+        onToggle={(_, button) => onToggleFavorite(pokemon, button)}
         className="absolute top-1.5 right-1.5"
       />
     </li>
