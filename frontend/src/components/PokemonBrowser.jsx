@@ -1,16 +1,11 @@
 import { useEffect, useState } from 'react'
 import { apiRequest } from '../api'
+import { POKEMON_TYPE_LABELS } from '../pokemonTypes'
+import PokemonDetail from './PokemonDetail'
 
 const PAGE_SIZE = 10
 const SPRITE_BASE_URL = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon'
 
-const POKEMON_TYPE_LABELS = {
-  normal: 'Normal', fire: 'Fuego', water: 'Agua', grass: 'Planta',
-  electric: 'Eléctrico', ice: 'Hielo', fighting: 'Lucha', poison: 'Veneno',
-  ground: 'Tierra', flying: 'Volador', psychic: 'Psíquico', bug: 'Bicho',
-  rock: 'Roca', ghost: 'Fantasma', dragon: 'Dragón', dark: 'Siniestro',
-  steel: 'Acero', fairy: 'Hada',
-}
 
 // PokéAPI list items only carry name + url; the id is the url's last path segment
 function getIdFromUrl(url) {
@@ -23,6 +18,7 @@ export default function PokemonBrowser({ onUnauthorized }) {
   const [page, setPage] = useState({ count: 0, results: [] })
   const [searchTerm, setSearchTerm] = useState('')
   const [searchResult, setSearchResult] = useState(null)
+  const [selectedId, setSelectedId] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -118,10 +114,15 @@ export default function PokemonBrowser({ onUnauthorized }) {
       ) : (
         <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
           {visiblePokemon.map((pokemon) => (
-            <li key={pokemon.name} className="rounded-xl bg-white p-3 text-center shadow">
-              <img src={`${SPRITE_BASE_URL}/${pokemon.id}.png`} alt={pokemon.name} loading="lazy" className="mx-auto h-24 w-24" />
-              <p className="text-sm text-slate-500">#{pokemon.id}</p>
-              <p className="font-semibold capitalize">{pokemon.name}</p>
+            <li key={pokemon.name}>
+              <button
+                onClick={() => setSelectedId(pokemon.id)}
+                className="w-full rounded-xl bg-white p-3 text-center shadow transition hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+              >
+                <img src={`${SPRITE_BASE_URL}/${pokemon.id}.png`} alt="" loading="lazy" className="mx-auto h-24 w-24" />
+                <p className="text-sm text-slate-500">#{pokemon.id}</p>
+                <p className="font-semibold capitalize">{pokemon.name}</p>
+              </button>
             </li>
           ))}
         </ul>
@@ -135,6 +136,15 @@ export default function PokemonBrowser({ onUnauthorized }) {
           <button disabled={currentPage >= totalPages} onClick={() => goToOffset(offset + PAGE_SIZE)}
             className="rounded bg-white px-4 py-2 shadow disabled:opacity-40">Siguiente</button>
         </nav>
+      )}
+
+      {selectedId && (
+        <PokemonDetail
+          key={selectedId}
+          pokemonId={selectedId}
+          onClose={() => setSelectedId(null)}
+          onUnauthorized={onUnauthorized}
+        />
       )}
     </section>
   )
