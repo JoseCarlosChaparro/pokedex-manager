@@ -73,3 +73,15 @@ def test_login_is_blocked_after_too_many_failures_from_one_ip(client):
         login(client, f"user{attempt}@example.com", password="WrongPassword")
 
     assert login(client, "ash@example.com").status_code == 429
+
+
+def test_limiter_forgets_stale_keys_when_it_tracks_too_many():
+    clock = FakeClock()
+    limiter = SlidingWindowRateLimiter(max_attempts=5, window_seconds=WINDOW_SECONDS, clock=clock, max_tracked_keys=3)
+    for key in ("a", "b", "c"):
+        limiter.record(key)
+    clock.advance(WINDOW_SECONDS)
+
+    limiter.record("d")
+
+    assert limiter.tracked_keys == 1

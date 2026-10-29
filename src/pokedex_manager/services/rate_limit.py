@@ -6,18 +6,32 @@ from pokedex_manager.clock import Clock
 MAX_FAILED_LOGINS_PER_EMAIL = 5
 MAX_FAILED_LOGINS_PER_IP = 20
 FAILED_LOGIN_WINDOW_SECONDS = 60
+DEFAULT_MAX_TRACKED_KEYS = 10_000
 
 
 class SlidingWindowRateLimiter:
     """Counts attempts per key over the last `window_seconds`. In memory: one API process only."""
 
-    def __init__(self, max_attempts: int, window_seconds: float, clock: Clock):
+    def __init__(
+        self,
+        max_attempts: int,
+        window_seconds: float,
+        clock: Clock,
+        max_tracked_keys: int = DEFAULT_MAX_TRACKED_KEYS,
+    ):
         self._max_attempts = max_attempts
         self._window_seconds = window_seconds
         self._clock = clock
+        self._max_tracked_keys = max_tracked_keys
         self._attempts: defaultdict[str, deque[float]] = defaultdict(deque)
 
+    @property
+    def tracked_keys(self) -> int:
+        return len(self._attempts)
+
     def record(self, key: str) -> None:
+        if len(self._attempts) >= self._max_tracked_keys:
+            self._forget_stale_keys()
         self._attempts[key].append(self._clock())
 
     def reset(self, key: str) -> None:
@@ -30,6 +44,11 @@ class SlidingWindowRateLimiter:
             return 0
         oldest_relevant = attempts[-self._max_attempts]
         return math.ceil(oldest_relevant + self._window_seconds - self._clock())
+
+    def _forget_stale_keys(self) -> None:
+        """Bounds memory when many distinct keys (e.g. random emails) are tried."""
+        for key in list(self._attempts):
+            self._recent_attempts(key)
 
     def _recent_attempts(self, key: str) -> deque[float]:
         attempts = self._attempts.get(key, deque())
