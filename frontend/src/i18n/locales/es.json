@@ -150,5 +150,14 @@
     "special-attack": "At. esp.",
     "special-defense": "Def. esp.",
     "speed": "Velocidad"
+  },
+  "footer": {
+    "madeBy": "Hecho por",
+    "author": "José Carlos Chaparro",
+    "dataFrom": "Datos de",
+    "pokeapi": "PokéAPI",
+    "github": "Código en GitHub",
+    "disclaimer": "Pokémon © Nintendo / Game Freak — proyecto de fans",
+    "copyright": "© {{year}}"
   }
 }

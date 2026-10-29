@@ -3,10 +3,11 @@ import { describe, expect, it } from 'vitest'
 import AuthForm from './AuthForm'
 
 describe('AuthForm', () => {
-  it('makes the brand the page h1 and the form title an h2', () => {
+  it('makes the brand the page h1 and the form title an h2, with the footer outside the form', () => {
     render(<AuthForm onAuthenticated={() => {}} toggles={null} />)
 
     expect(screen.getByRole('heading', { level: 1, name: /PokéDex/ })).toBeInTheDocument()
     expect(screen.getByRole('heading', { level: 2, name: 'Iniciar sesión' })).toBeInTheDocument()
+    expect(screen.getByRole('contentinfo')).toBeInTheDocument()
   })
 })

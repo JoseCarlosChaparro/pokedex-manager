@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { apiRequest, saveToken } from '../api'
+import AppFooter from './AppFooter'
 import AuroraBackground from './AuroraBackground'
 import BrandTitle from './BrandTitle'
 
@@ -82,6 +83,7 @@ export default function AuthForm({ onAuthenticated, toggles }) {
           </form>
         </div>
       </main>
+      <AppFooter />
     </div>
   )
 }

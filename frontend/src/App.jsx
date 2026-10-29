@@ -1,6 +1,7 @@
 import { LogOut } from 'lucide-react'
 import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import AppFooter from './components/AppFooter'
 import AuthForm from './components/AuthForm'
 import LanguageToggle from './components/LanguageToggle'
 import PokemonBrowser from './components/PokemonBrowser'
@@ -58,6 +59,7 @@ export default function App() {
         </div>
       </header>
       <PokemonBrowser onUnauthorized={endSession} />
+      <AppFooter />
     </div>
   )
 }

@@ -150,5 +150,14 @@
     "special-attack": "Sp. Atk",
     "special-defense": "Sp. Def",
     "speed": "Speed"
+  },
+  "footer": {
+    "madeBy": "Made by",
+    "author": "José Carlos Chaparro",
+    "dataFrom": "Data from",
+    "pokeapi": "PokéAPI",
+    "github": "Source code on GitHub",
+    "disclaimer": "Pokémon © Nintendo / Game Freak — fan project",
+    "copyright": "© {{year}}"
   }
 }
