@@ -42,7 +42,14 @@ export default function PokemonBrowser({ onUnauthorized, playTransition = playVi
   const { t } = useTranslation()
   const [url, setUrl] = useUrlState()
   const { index, isLoading, error: indexError } = usePokedexIndex({ onUnauthorized })
-  const { favorites, isFavorite, toggleFavorite, openPack, error: favoritesError } = useFavorites({ onUnauthorized })
+  const {
+    favorites,
+    isLoading: isFavoritesLoading,
+    isFavorite,
+    toggleFavorite,
+    openPack,
+    error: favoritesError,
+  } = useFavorites({ onUnauthorized })
   const gridRef = useRef(null)
   // The tab asked for while its grid transition still runs: the selection follows it at once
   const [pendingView, setPendingView] = useState(null)
@@ -138,9 +145,10 @@ export default function PokemonBrowser({ onUnauthorized, playTransition = playVi
   }, [url.pokemon])
 
   // Keep the URL honest when a page number is out of range (e.g. after filtering)
+  const isCollectionPending = isFavoritesView && isFavoritesLoading
   useEffect(() => {
-    if (!isLoading && url.page !== page) setUrl({ page }, { replace: true })
-  }, [isLoading, url.page, page, setUrl])
+    if (!isLoading && !isCollectionPending && url.page !== page) setUrl({ page }, { replace: true })
+  }, [isLoading, isCollectionPending, url.page, page, setUrl])
 
   // The opened pack unmounts, taking its own live region with it: the browser announces and restores focus
   const [announcement, setAnnouncement] = useState('')
@@ -160,7 +168,7 @@ export default function PokemonBrowser({ onUnauthorized, playTransition = playVi
 
   const auroraColors = url.types.map((type) => POKEMON_TYPE_COLORS[type])
   const sealedCount = favorites.filter((favorite) => !favorite.opened).length
-  const isCollectionEmpty = isFavoritesView && favorites.length === 0
+  const isCollectionEmpty = isFavoritesView && !isFavoritesLoading && favorites.length === 0
   const emptyVariant = isCollectionEmpty ? 'collection' : 'noResults'
   const emptyAction = isCollectionEmpty ? () => changeView(VIEWS.all) : () => changeFilters(CLEARED_FILTERS)
   const error = indexError || favoritesError
@@ -180,7 +188,7 @@ export default function PokemonBrowser({ onUnauthorized, playTransition = playVi
       <section className={`${CONTAINER_CLASS} overflow-x-clip pb-6`}>
         <AuroraBackground colors={auroraColors} />
 
-        {!isCollectionEmpty && <FilterBar filters={url} resultCount={filtered.length} onChange={changeFilters} />}
+        {!isCollectionEmpty && !isCollectionPending && <FilterBar filters={url} resultCount={filtered.length} onChange={changeFilters} />}
 
         {error && (
           <p role="alert" className="mb-4 rounded-xl bg-red-100 p-3 text-red-800 dark:bg-red-950 dark:text-red-200">
@@ -188,7 +196,7 @@ export default function PokemonBrowser({ onUnauthorized, playTransition = playVi
           </p>
         )}
 
-        {!isLoading && filtered.length === 0 && (
+        {!isLoading && !isCollectionPending && filtered.length === 0 && (
           <EmptyState variant={emptyVariant} onAction={emptyAction} />
         )}
 

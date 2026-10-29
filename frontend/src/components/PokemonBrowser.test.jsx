@@ -11,9 +11,10 @@ vi.mock('../hooks/usePokedexIndex', () => ({
   }),
 }))
 
+const favoritesState = vi.hoisted(() => ({ favorites: [], isLoading: false }))
 vi.mock('../hooks/useFavorites', () => ({
   useFavorites: () => ({
-    favorites: [],
+    ...favoritesState,
     isFavorite: () => false,
     toggleFavorite: vi.fn(),
     openPack: vi.fn(),
@@ -22,7 +23,10 @@ vi.mock('../hooks/useFavorites', () => ({
 }))
 
 describe('PokemonBrowser empty collection', () => {
-  afterEach(() => window.history.replaceState(null, '', '/'))
+  afterEach(() => {
+    window.history.replaceState(null, '', '/')
+    favoritesState.isLoading = false
+  })
 
   // An empty collection has nothing to filter, so the filter card stays out of the way of the empty state
   it('hides the filters when the collection is empty', () => {
@@ -31,6 +35,17 @@ describe('PokemonBrowser empty collection', () => {
 
     expect(screen.getByText('Tu colección está vacía')).toBeInTheDocument()
     expect(screen.queryByRole('searchbox')).not.toBeInTheDocument()
+  })
+
+  // Until the favorites arrive the collection is unknown: no empty state, no filters, and the requested page stays
+  it('shows neither an empty state nor the filters while the collection loads', () => {
+    favoritesState.isLoading = true
+    window.history.replaceState(null, '', '/?view=favorites&page=2')
+    render(<PokemonBrowser onUnauthorized={vi.fn()} playTransition={vi.fn()} />)
+
+    expect(screen.queryByRole('heading', { level: 3 })).not.toBeInTheDocument()
+    expect(screen.queryByRole('searchbox')).not.toBeInTheDocument()
+    expect(window.location.search).toContain('page=2')
   })
 })
 

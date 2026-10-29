@@ -12,6 +12,25 @@ describe('useFavorites', () => {
     apiRequest.mockReset()
   })
 
+  it('is loading until the saved favorites arrive', async () => {
+    let resolveLoad
+    apiRequest.mockReturnValueOnce(new Promise((resolve) => (resolveLoad = resolve)))
+    const { result } = renderHook(() => useFavorites({ onUnauthorized: vi.fn() }))
+
+    expect(result.current.isLoading).toBe(true)
+
+    await act(async () => resolveLoad([]))
+    expect(result.current.isLoading).toBe(false)
+  })
+
+  it('stops loading when the saved favorites fail to load', async () => {
+    apiRequest.mockRejectedValueOnce(new ApiError(500, 'down'))
+    const { result } = renderHook(() => useFavorites({ onUnauthorized: vi.fn() }))
+
+    await waitFor(() => expect(result.current.error).toBe('browser.collectionLoadError'))
+    expect(result.current.isLoading).toBe(false)
+  })
+
   it('loads the saved favorites', async () => {
     apiRequest.mockResolvedValueOnce([{ pokemon_id: 25, name: 'pikachu', added_at: '2026-10-28T00:00:00Z' }])
 

@@ -9,6 +9,8 @@ const UNAUTHORIZED = 401
 export function useFavorites({ onUnauthorized }) {
   const [favorites, setFavorites] = useState([])
   const [error, setError] = useState('')
+  // Until the first load settles the collection is unknown: an empty list must not read as "no favorites"
+  const [isLoading, setIsLoading] = useState(true)
 
   // Latest callback without re-running the load effect when the parent passes a new function
   const onUnauthorizedRef = useRef(onUnauthorized)
@@ -29,6 +31,9 @@ export function useFavorites({ onUnauthorized }) {
       })
       .catch((err) => {
         if (!isStale) handleError(err, 'browser.collectionLoadError')
+      })
+      .finally(() => {
+        if (!isStale) setIsLoading(false)
       })
     return () => {
       isStale = true
@@ -83,5 +88,5 @@ export function useFavorites({ onUnauthorized }) {
     [handleError],
   )
 
-  return { favorites, isFavorite, toggleFavorite, openPack, error }
+  return { favorites, isLoading, isFavorite, toggleFavorite, openPack, error }
 }
