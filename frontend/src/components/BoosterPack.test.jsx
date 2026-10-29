@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import BoosterPack from './BoosterPack'
@@ -38,5 +38,22 @@ describe('BoosterPack', () => {
     })
 
     expect(onOpen).toHaveBeenCalledTimes(1)
+  })
+
+  it('tears toward the drag direction', () => {
+    const tearOnDrag = (releaseX) => {
+      const { container } = render(<BoosterPack pokemon={PIKACHU} position={1} onOpen={vi.fn()} />)
+      const pack = container.querySelector('.booster')
+      const strip = container.querySelector('.booster__strip')
+      vi.spyOn(pack, 'getBoundingClientRect').mockReturnValue({ left: 0, width: 100 })
+      strip.setPointerCapture = vi.fn()
+      fireEvent.pointerDown(strip, { clientX: 100, pointerId: 1 })
+      fireEvent.pointerMove(strip, { clientX: releaseX, pointerId: 1 })
+      fireEvent.pointerUp(strip, { clientX: releaseX, pointerId: 1 })
+      return pack
+    }
+
+    expect(tearOnDrag(10).style.getPropertyValue('--tear-dir')).toBe('-1')
+    expect(tearOnDrag(190).style.getPropertyValue('--tear-dir')).toBe('1')
   })
 })
