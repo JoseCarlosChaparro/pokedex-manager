@@ -1,7 +1,14 @@
 @import "tailwindcss";
 
+/* Dark mode follows the .dark class on <html> (set by the theme toggle), not only the OS setting */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
+}
+
+:root.dark {
+  color-scheme: dark;
 }
 
 @keyframes card-in {
@@ -184,15 +191,441 @@
   }
 }
 
-@media (prefers-color-scheme: dark) {
-  .holo-card {
-    background: linear-gradient(160deg, color-mix(in srgb, var(--type-color) 55%, #0f172a), #0f172a 65%);
-  }
+.dark .holo-card {
+  background: linear-gradient(160deg, color-mix(in srgb, var(--type-color) 55%, #0f172a), #0f172a 65%);
 }
 
 @media (prefers-reduced-motion: reduce) {
   .holo-card {
     transform: none;
     transition: none;
+  }
+}
+
+/* ── App background: drifting aurora tinted by the selected types ───────────────────────── */
+body {
+  background: #f1f5f9;
+}
+
+.dark body {
+  background: #020617;
+}
+
+.aurora__blob {
+  position: absolute;
+  width: 60vmax;
+  height: 60vmax;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--blob-color) 55%, transparent), transparent 65%);
+  filter: blur(40px);
+  opacity: 0.55;
+  transition: background 0.8s;
+}
+
+.dark .aurora__blob {
+  opacity: 0.35;
+}
+
+.aurora__blob--1 {
+  top: -25vmax;
+  left: -15vmax;
+}
+
+.aurora__blob--2 {
+  top: 10vmax;
+  right: -25vmax;
+}
+
+.aurora__blob--3 {
+  bottom: -30vmax;
+  left: 20vmax;
+}
+
+/* Fine noise so the gradients don't band */
+.aurora__grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.06;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+@keyframes aurora-drift-1 {
+  50% {
+    transform: translate(12vmax, 8vmax) scale(1.15);
+  }
+}
+
+@keyframes aurora-drift-2 {
+  50% {
+    transform: translate(-14vmax, 10vmax) scale(0.9);
+  }
+}
+
+@keyframes aurora-drift-3 {
+  50% {
+    transform: translate(8vmax, -12vmax) scale(1.1);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .aurora__blob--1 {
+    animation: aurora-drift-1 22s ease-in-out infinite;
+  }
+
+  .aurora__blob--2 {
+    animation: aurora-drift-2 28s ease-in-out infinite;
+  }
+
+  .aurora__blob--3 {
+    animation: aurora-drift-3 25s ease-in-out infinite;
+  }
+}
+
+/* ── Header Poké Ball ─────────────────────────────────────────────────────────────────────── */
+.pokeball {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  border: 2px solid #111827;
+  background: linear-gradient(#fff 0 0) center / 100% 2px no-repeat, linear-gradient(#ef4444 50%, #fff 50%);
+  box-shadow: inset 0 0 0 4px transparent;
+  position: relative;
+}
+
+.pokeball::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  width: 0.5rem;
+  height: 0.5rem;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid #111827;
+}
+
+/* ── Gallery cards: gradient from the Pokémon's types ─────────────────────────────────────── */
+.pokemon-card {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: 1.5rem;
+  background: linear-gradient(150deg, color-mix(in srgb, var(--c1) 38%, white), color-mix(in srgb, var(--c2) 22%, white) 70%);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.08), inset 0 0 0 1px rgb(255 255 255 / 0.6);
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.35s;
+}
+
+.dark .pokemon-card {
+  background: linear-gradient(150deg, color-mix(in srgb, var(--c1) 45%, #0f172a), color-mix(in srgb, var(--c2) 25%, #0f172a) 70%);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.4), inset 0 0 0 1px rgb(255 255 255 / 0.08);
+}
+
+.pokemon-card:focus-visible {
+  outline: 3px solid #dc2626;
+  outline-offset: 3px;
+}
+
+/* Big Pokédex number in the background */
+.pokemon-card__number {
+  position: absolute;
+  right: -0.25rem;
+  bottom: -1rem;
+  z-index: -1;
+  font-size: 4.5rem;
+  font-weight: 900;
+  line-height: 1;
+  color: rgb(255 255 255 / 0.55);
+  letter-spacing: -0.05em;
+}
+
+.dark .pokemon-card__number {
+  color: rgb(255 255 255 / 0.07);
+}
+
+/* Soft colored halo behind the sprite */
+.pokemon-card__glow {
+  position: absolute;
+  top: 0.75rem;
+  left: 50%;
+  width: 6rem;
+  height: 6rem;
+  translate: -50% 0;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--c1) 55%, white), transparent 70%);
+  opacity: 0.6;
+  transition: transform 0.4s, opacity 0.4s;
+}
+
+.pokemon-card__type {
+  border-radius: 999px;
+  padding: 0.1rem 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: color-mix(in srgb, var(--type) 22%, white);
+  color: #0f172a;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--type) 60%, transparent);
+}
+
+.dark .pokemon-card__type {
+  background: color-mix(in srgb, var(--type) 35%, #0f172a);
+  color: #f8fafc;
+}
+
+/* Shine sweep across the card on hover */
+.pokemon-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 35%, rgb(255 255 255 / 0.55) 50%, transparent 65%);
+  translate: -120% 0;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .pokemon-card:hover,
+  .pokemon-card:focus-visible {
+    transform: translateY(-6px) rotate(-0.6deg);
+    box-shadow: 0 18px 30px -12px color-mix(in srgb, var(--c1) 70%, transparent);
+  }
+
+  .pokemon-card:hover::after {
+    transition: translate 0.7s ease;
+    translate: 120% 0;
+  }
+
+  .pokemon-card:hover .pokemon-card__sprite {
+    animation: sprite-hop 0.6s cubic-bezier(0.3, 1.6, 0.5, 1);
+  }
+
+  .pokemon-card:hover .pokemon-card__glow {
+    transform: scale(1.35);
+    opacity: 0.95;
+  }
+}
+
+@keyframes sprite-hop {
+  40% {
+    transform: translateY(-10px) scale(1.12);
+  }
+}
+
+/* ── Favorite heart burst ─────────────────────────────────────────────────────────────────── */
+.favorite-burst {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  pointer-events: none;
+}
+
+.favorite-burst span {
+  position: absolute;
+  width: 0.5rem;
+  height: 0.5rem;
+  margin: -0.25rem;
+  border-radius: 50%;
+  background: #ef4444;
+  opacity: 0;
+}
+
+@keyframes burst {
+  0% {
+    opacity: 1;
+    transform: rotate(var(--angle)) translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(var(--angle)) translateY(-26px) scale(0.3);
+  }
+}
+
+@keyframes heart-pop {
+  40% {
+    transform: scale(1.4);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .favorite-burst span {
+    animation: burst 0.6s ease-out;
+  }
+
+  .favorite-button__heart--on {
+    animation: heart-pop 0.4s cubic-bezier(0.3, 1.6, 0.5, 1);
+  }
+}
+
+/* ── Booster pack: drag the top strip to tear it open ─────────────────────────────────────── */
+.booster {
+  --tear: 0;
+  position: relative;
+  aspect-ratio: 5 / 7;
+  border-radius: 1rem;
+  perspective: 800px;
+}
+
+.booster__body,
+.booster__strip {
+  position: absolute;
+  inset-inline: 0;
+  background:
+    linear-gradient(115deg, transparent 30%, rgb(255 255 255 / 0.45) 45%, transparent 60%) 0 0 / 250% 100%,
+    linear-gradient(160deg, var(--c1), var(--c2) 60%, #111827);
+  box-shadow: inset 0 0 0 2px rgb(255 255 255 / 0.35);
+}
+
+.booster__body {
+  top: 14%;
+  bottom: 0;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 0.5rem;
+  border-radius: 0 0 1rem 1rem;
+  /* Zigzag top edge (the perforation) */
+  clip-path: polygon(0 4%, 5% 0, 10% 4%, 15% 0, 20% 4%, 25% 0, 30% 4%, 35% 0, 40% 4%, 45% 0, 50% 4%, 55% 0, 60% 4%, 65% 0, 70% 4%, 75% 0, 80% 4%, 85% 0, 90% 4%, 95% 0, 100% 4%, 100% 100%, 0 100%);
+  transition: transform 0.6s cubic-bezier(0.5, 0, 0.75, 0), opacity 0.6s;
+}
+
+.booster__strip {
+  top: 0;
+  height: 15%;
+  display: grid;
+  place-items: center;
+  border-radius: 1rem 1rem 0 0;
+  cursor: grab;
+  touch-action: none;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: white;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 0.6);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 95% 75%, 90% 100%, 85% 75%, 80% 100%, 75% 75%, 70% 100%, 65% 75%, 60% 100%, 55% 75%, 50% 100%, 45% 75%, 40% 100%, 35% 75%, 30% 100%, 25% 75%, 20% 100%, 15% 75%, 10% 100%, 5% 75%, 0 100%);
+  transform-origin: 0% 100%;
+  /* Follows the drag: lifts and peels away as --tear grows */
+  transform: translateY(calc(var(--tear) * -18px)) rotate(calc(var(--tear) * -14deg));
+}
+
+.booster[data-dragging] .booster__strip {
+  cursor: grabbing;
+}
+
+.booster__brand {
+  font-size: 0.8rem;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  color: #fde047;
+  text-shadow: 0 2px 0 #1e3a8a, 0 0 8px rgb(0 0 0 / 0.5);
+}
+
+.booster__silhouette {
+  width: 5.5rem;
+  height: 5.5rem;
+  filter: brightness(0) drop-shadow(0 0 6px rgb(255 255 255 / 0.7));
+}
+
+.booster__hint {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: white;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 0.7);
+}
+
+.booster__reveal {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  border-radius: 1rem;
+  background: radial-gradient(circle, color-mix(in srgb, var(--c1) 35%, white), white 75%);
+  opacity: 0;
+  transform: scale(0.8);
+}
+
+.dark .booster__reveal {
+  background: radial-gradient(circle, color-mix(in srgb, var(--c1) 45%, #0f172a), #0f172a 75%);
+}
+
+.booster--torn .booster__strip {
+  transition: transform 0.5s cubic-bezier(0.3, 0, 0.7, 1), opacity 0.5s;
+  transform: translate(60%, -140%) rotate(-35deg);
+  opacity: 0;
+}
+
+.booster--torn .booster__body {
+  transform: translateY(70%) rotate(4deg);
+  opacity: 0;
+}
+
+.booster--torn .booster__reveal {
+  z-index: 1;
+  transition: opacity 0.4s 0.25s, transform 0.6s 0.25s cubic-bezier(0.3, 1.6, 0.5, 1);
+  opacity: 1;
+  transform: scale(1);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .booster:not(.booster--torn) {
+    animation: pack-wiggle 3.5s ease-in-out infinite;
+  }
+
+  .booster__body {
+    animation: pack-shine 3s linear infinite;
+  }
+}
+
+@keyframes pack-wiggle {
+  0%,
+  85%,
+  100% {
+    rotate: 0deg;
+  }
+  90% {
+    rotate: -2deg;
+  }
+  95% {
+    rotate: 2deg;
+  }
+}
+
+@keyframes pack-shine {
+  to {
+    background-position: -250% 0, 0 0;
+  }
+}
+
+/* ── Detail opening: the card flips in like being turned over ─────────────────────────────── */
+@keyframes backdrop-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes card-flip-in {
+  0% {
+    opacity: 0;
+    transform: perspective(1200px) rotateY(-110deg) scale(0.7);
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    transform: perspective(1200px) rotateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .detail-backdrop {
+    animation: backdrop-in 0.3s ease-out;
+  }
+
+  .detail-flip-in {
+    animation: card-flip-in 0.75s cubic-bezier(0.2, 0.9, 0.25, 1.15) both;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .detail-backdrop {
+    animation: backdrop-in 0.2s ease-out;
   }
 }

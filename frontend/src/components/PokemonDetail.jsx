@@ -74,7 +74,7 @@ export default function PokemonDetail({ pokemonId, onClose, onNavigate, onUnauth
   const title = pokemon ? formatName(pokemon.name) : 'Pokémon'
 
   return (
-    <div className="fixed inset-0 z-30 grid place-items-center bg-slate-950/60 p-3 backdrop-blur-sm sm:p-6" onClick={onClose}>
+    <div className="detail-backdrop fixed inset-0 z-30 grid place-items-center bg-slate-950/60 p-3 backdrop-blur-sm sm:p-6" onClick={onClose}>
       <article
         role="dialog"
         aria-modal="true"
@@ -82,25 +82,25 @@ export default function PokemonDetail({ pokemonId, onClose, onNavigate, onUnauth
         onClick={(event) => event.stopPropagation()}
         className="max-h-full w-full max-w-md overflow-x-hidden overflow-y-auto overscroll-contain p-4 [scrollbar-width:none]"
       >
+      <div className="mb-3 flex items-center justify-between gap-2 px-1">
+          <button
+            type="button"
+            autoFocus
+            onClick={onClose}
+            aria-label="Cerrar"
+            className="grid h-11 w-11 place-items-center rounded-full bg-white/80 text-2xl leading-none shadow-sm dark:bg-slate-900/70"
+          >
+            ×
+          </button>
+          <p className="rounded-full bg-white/85 px-3 py-1 font-mono text-sm font-semibold text-slate-800 shadow-sm dark:bg-slate-900/80 dark:text-slate-100">
+            #{String(id).padStart(4, '0')}
+          </p>
+          {pokemon && (
+            <FavoriteButton pokemon={{ id, name: pokemon.name }} isFavorite={isFavorite} onToggle={onToggleFavorite} />
+          )}
+        </div>
+        <div className="detail-flip-in">
         <HoloCard color={typeColor}>
-          <div className="relative z-10 flex items-center justify-between gap-2">
-            <button
-              type="button"
-              autoFocus
-              onClick={onClose}
-              aria-label="Cerrar"
-              className="grid h-11 w-11 place-items-center rounded-full bg-white/80 text-2xl leading-none shadow-sm dark:bg-slate-900/70"
-            >
-              ×
-            </button>
-            <p className="font-mono text-sm font-semibold text-slate-700 dark:text-slate-200">
-              #{String(id).padStart(4, '0')}
-            </p>
-            {pokemon && (
-              <FavoriteButton pokemon={{ id, name: pokemon.name }} isFavorite={isFavorite} onToggle={onToggleFavorite} />
-            )}
-          </div>
-
           <HoloArt>
           <img
             data-detail-art
@@ -218,6 +218,7 @@ export default function PokemonDetail({ pokemonId, onClose, onNavigate, onUnauth
             </nav>
           </div>
         </HoloCard>
+        </div>
       </article>
     </div>
   )

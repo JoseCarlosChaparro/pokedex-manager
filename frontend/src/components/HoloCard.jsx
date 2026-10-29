@@ -49,8 +49,14 @@ export default function HoloCard({ color, children }) {
 
   function handlePointerMove(event) {
     if (prefersReducedMotion() || event.pointerType === 'touch') return
-    const rect = cardRef.current.getBoundingClientRect()
     delete cardRef.current.dataset.intro
+    // Flatten over controls so buttons stay still and easy to hit
+    if (event.target.closest('button')) {
+      cardRef.current.dataset.active = ''
+      applyLight(0.5, 0.5, ACTIVE_SHINE)
+      return
+    }
+    const rect = cardRef.current.getBoundingClientRect()
     cardRef.current.dataset.active = ''
     applyLight((event.clientX - rect.left) / rect.width, (event.clientY - rect.top) / rect.height, ACTIVE_SHINE)
   }

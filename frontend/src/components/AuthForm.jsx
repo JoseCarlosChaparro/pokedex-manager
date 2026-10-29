@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { apiRequest, saveToken } from '../api'
+import AuroraBackground from './AuroraBackground'
 
 const PASSWORD_MIN_LENGTH = 8
 
@@ -10,7 +11,7 @@ const AUTH_ERROR_MESSAGES = {
   429: 'Demasiados intentos fallidos. Espera un minuto e intenta de nuevo.',
 }
 
-export default function AuthForm({ onAuthenticated }) {
+export default function AuthForm({ onAuthenticated, themeToggle }) {
   const [isRegister, setIsRegister] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -40,8 +41,10 @@ export default function AuthForm({ onAuthenticated }) {
   }
 
   return (
-    <main className="grid min-h-screen place-items-center bg-slate-100 p-4 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
-      <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-4 rounded-2xl bg-white p-6 shadow-lg dark:bg-slate-800">
+    <main className="relative isolate grid min-h-screen place-items-center p-4 text-slate-900 dark:text-slate-100">
+      <AuroraBackground />
+      <div className="absolute top-3 right-3 rounded-xl bg-slate-900/70 p-0.5">{themeToggle}</div>
+      <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-4 rounded-3xl bg-white/85 p-6 shadow-2xl ring-1 ring-white/60 backdrop-blur-xl dark:bg-slate-900/80 dark:ring-white/10">
         <h1 className="text-center text-2xl font-bold">
           {isRegister ? 'Crear cuenta' : 'Iniciar sesión'}
         </h1>
