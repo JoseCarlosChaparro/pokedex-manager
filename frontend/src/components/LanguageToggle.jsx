@@ -6,7 +6,7 @@ import { LANGUAGES } from '../i18n'
 export default function LanguageToggle() {
   const { t, i18n } = useTranslation()
   return (
-    <div role="group" aria-label={t('language.label')} className="flex rounded-xl bg-white/15 p-0.5 sm:p-1">
+    <div role="group" aria-label={t('language.label')} className="flex rounded-xl bg-white/8 p-0.5 ring-1 ring-white/10 sm:p-1">
       {LANGUAGES.map((language) => {
         const name = t(`language.names.${language}`)
         return (
@@ -16,7 +16,7 @@ export default function LanguageToggle() {
             aria-pressed={i18n.language === language}
             title={name}
             onClick={() => i18n.changeLanguage(language)}
-            className="grid h-9 w-8 place-items-center rounded-lg text-xs font-bold text-white max-[360px]:w-7 sm:w-9 aria-pressed:bg-white/90 aria-pressed:text-slate-900 aria-pressed:shadow-sm"
+            className="grid h-9 w-8 place-items-center rounded-lg text-xs font-bold text-slate-400 transition-colors hover:text-white max-[360px]:w-7 sm:w-9 aria-pressed:bg-white/20 aria-pressed:text-white aria-pressed:shadow-sm aria-pressed:ring-1 aria-pressed:ring-white/25"
           >
             {language.toUpperCase()}
             {' '}

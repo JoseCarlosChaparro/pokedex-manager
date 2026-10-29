@@ -32,11 +32,11 @@ describe('LanguageToggle', () => {
   })
 
   // The toggle sits on a dark wrapper in light mode, so its codes must not inherit the dark page text
-  it('sets white text on the unpressed codes so they stay readable on the dark wrapper', () => {
+  it('sets light text on the codes so they stay readable on the dark wrapper', () => {
     render(<LanguageToggle />)
 
-    expect(screen.getByRole('button', { name: /Español/ })).toHaveClass('text-white')
-    expect(screen.getByRole('button', { name: /English/ })).toHaveClass('text-white')
+    expect(screen.getByRole('button', { name: /Español/ })).toHaveClass('text-slate-400', 'aria-pressed:text-white')
+    expect(screen.getByRole('button', { name: /English/ })).toHaveClass('text-slate-400', 'aria-pressed:text-white')
   })
 })
 
