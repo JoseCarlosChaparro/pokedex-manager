@@ -7,8 +7,10 @@ import PokemonCardFace from './PokemonCardFace'
 // except while a pack opens, when it holds the revealed card; playPackOpening adds its own elements to it.
 export default function PackStage({ stageRef, cardRef, pokemon, density, isOpening }) {
   const [primary, secondary = primary] = pokemon.types ?? []
+  // While the opening runs the stage is the backdrop: it must stop clicks from reaching the gallery behind it
+  const pointerClass = isOpening ? 'pointer-events-auto' : 'pointer-events-none'
   return createPortal(
-    <div ref={stageRef} aria-hidden="true" className="pointer-events-none fixed inset-0 z-50 empty:hidden">
+    <div ref={stageRef} aria-hidden="true" className={`fixed inset-0 z-50 empty:hidden ${pointerClass}`}>
       {isOpening && (
         <div
           ref={cardRef}
