@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import AppFooter from './components/AppFooter'
 import AuthForm from './components/AuthForm'
 import LanguageToggle from './components/LanguageToggle'
+import ChunkErrorBoundary from './components/ChunkErrorBoundary'
 import { PokemonCardSkeleton } from './components/PokemonCard'
 import { apiRequest, clearToken, getToken } from './api'
 import ThemeToggle from './components/ThemeToggle'
@@ -72,9 +73,11 @@ export default function App() {
           </button>
         </div>
       </header>
-      <Suspense fallback={<BrowserSkeleton />}>
-        <LazyPokemonBrowser onUnauthorized={endSession} />
-      </Suspense>
+      <ChunkErrorBoundary>
+        <Suspense fallback={<BrowserSkeleton />}>
+          <LazyPokemonBrowser onUnauthorized={endSession} />
+        </Suspense>
+      </ChunkErrorBoundary>
       <AppFooter />
     </div>
   )

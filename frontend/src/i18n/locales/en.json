@@ -3,7 +3,9 @@
     "brand": "PokéDex",
     "brandSuffix": "Manager",
     "logout": "Log out",
-    "logoutShort": "Log out"
+    "logoutShort": "Log out",
+    "chunkError": "This part of the app could not load.",
+    "retry": "Retry"
   },
   "auth": {
     "loginTitle": "Log in",

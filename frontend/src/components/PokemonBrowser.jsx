@@ -14,6 +14,7 @@ import { VIEWS } from '../urlState'
 import { playViewTransition, viewDirection } from '../viewTransition'
 import AuroraBackground from './AuroraBackground'
 import BoosterPack from './BoosterPack'
+import ChunkErrorBoundary from './ChunkErrorBoundary'
 import EmptyState from './EmptyState'
 import FilterBar from './FilterBar'
 import Paginator from './Paginator'
@@ -27,6 +28,11 @@ const GRID_COLUMNS = {
   compact: 'grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 2xl:grid-cols-12',
   comfy: 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-8',
   large: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6',
+}
+
+// Preloading is best effort: a failed download is retried when the detail opens, so the rejection is dropped here
+function preloadDetailOnIntent() {
+  preloadPokemonDetail().catch(() => {})
 }
 
 const cardButton = (id) => document.querySelector(`[data-pokemon-id="${id}"] button`)
@@ -189,8 +195,8 @@ export default function PokemonBrowser({ onUnauthorized, playTransition = playVi
       <ul
         ref={gridRef}
         aria-busy={isLoading}
-        onPointerOver={preloadPokemonDetail}
-        onFocus={preloadPokemonDetail}
+        onPointerOver={preloadDetailOnIntent}
+        onFocus={preloadDetailOnIntent}
         className={`grid gap-3 sm:gap-4 ${GRID_COLUMNS[url.density]}`}
       >
         {isLoading
@@ -222,16 +228,18 @@ export default function PokemonBrowser({ onUnauthorized, playTransition = playVi
 
       {/* The detail chunk may still be loading: its own boundary keeps the grid from suspending with it */}
       {url.pokemon && (
-        <Suspense fallback={null}>
-          <LazyPokemonDetail
-            pokemonId={url.pokemon}
-            onClose={closePokemon}
-            onNavigate={showPokemon}
-            onUnauthorized={onUnauthorized}
-            isFavorite={isFavorite(url.pokemon)}
-            onToggleFavorite={toggleFavorite}
-          />
-        </Suspense>
+        <ChunkErrorBoundary>
+          <Suspense fallback={null}>
+            <LazyPokemonDetail
+              pokemonId={url.pokemon}
+              onClose={closePokemon}
+              onNavigate={showPokemon}
+              onUnauthorized={onUnauthorized}
+              isFavorite={isFavorite(url.pokemon)}
+              onToggleFavorite={toggleFavorite}
+            />
+          </Suspense>
+        </ChunkErrorBoundary>
       )}
     </section>
   )
