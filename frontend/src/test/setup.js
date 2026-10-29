@@ -6,6 +6,7 @@ afterEach(() => {
   cleanup()
   vi.restoreAllMocks()
   localStorage.clear()
+  document.documentElement.classList.remove('dark')
   window.history.replaceState(null, '', '/')
 })
 

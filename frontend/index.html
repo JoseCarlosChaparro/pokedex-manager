@@ -5,6 +5,14 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>PokéDex Manager</title>
+      <script>
+      // Apply the saved theme before the first paint (no light flash in dark mode)
+      try {
+        const theme = localStorage.getItem('pokedex_theme') || 'system'
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (theme === 'dark' || (theme === 'system' && prefersDark)) document.documentElement.classList.add('dark')
+      } catch {}
+    </script>
   </head>
   <body>
     <div id="root"></div>
