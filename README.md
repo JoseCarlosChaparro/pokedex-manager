@@ -7,7 +7,7 @@ a paginated list, search by name or number, a type filter and a detail view.
 - **Frontend:** React · Vite · Tailwind CSS
 - **Live demo:** https://pokedex.josechaparro.com — log in with any [test user](#test-users).
 - **v1** (the delivered exercise) is tag [`v1.0.0`](../../tree/v1.0.0). **v2** (this branch) adds favorites,
-  autocomplete, caching, rate limiting, tests and CI, and a holographic detail card — see [What's new in v2](#whats-new-in-v2).
+  instant filters, booster packs, caching, rate limiting, tests and CI, and a holographic detail card — see [What's new in v2](#whats-new-in-v2).
 
 ---
 
@@ -24,7 +24,8 @@ a paginated list, search by name or number, a type filter and a detail view.
   drag its strip to tear it open (or use the button), and the opened state is saved.
 - **Holographic detail card:** gold-framed artwork with rainbow foil, glitter and glare that follow the pointer
   (or the phone's gyroscope), stat bars, cry, shiny toggle, previous/next with buttons or arrow keys.
-- Shareable URLs: page, type, search and the open Pokémon live in the address bar; Back closes the detail.
+- Shareable URLs: page, filters and the open Pokémon live in the address bar; Back closes the detail.
+- The detail is a native modal `<dialog>` (focus trapped, page inert) that flips in like a card being turned over.
 - Light, dark or system theme; animated aurora background tinted by the selected types; responsive from 320 px phones to 2560 px screens; WCAG 2.2 AA (checked with axe);
   every animation is static under `prefers-reduced-motion`.
 - Friendly error messages (not found, PokéAPI down or slow, invalid credentials, too many login attempts).
@@ -40,9 +41,9 @@ test-first implementation, an independent review pass and small Conventional Com
 |---|---|
 | Architecture | App factory (`create_app`) as the composition root: Mongo, one shared `httpx.AsyncClient`, services and the clock are injected with `Depends`. Repositories for storage, a `PokeAPIClient` adapter for PokéAPI. |
 | Performance | In-memory TTL cache (1 h) for PokéAPI; the detail response shrinks from ~300 KB to ~2 KB. |
-| Features | Favorites, partial-name autocomplete, trimmed detail model (artwork, shiny, cry, units converted). |
+| Features | Favorites as booster packs, Pokédex index for instant filters, partial-name autocomplete endpoint, trimmed detail model (artwork, shiny, cry, units converted). |
 | Security | Failed-login rate limit (5 per email / 20 per IP per minute → 429), constant-time rejection of unknown emails, real client IP through nginx. |
-| Quality | 61 backend tests (pytest), 50 frontend unit tests (Vitest), 30 e2e + accessibility tests (Playwright + axe), GitHub Actions CI. |
+| Quality | 62 backend tests (pytest), 53 frontend unit tests (Vitest), 34 e2e + accessibility tests (Playwright + axe), GitHub Actions CI. |
 | Motion | GSAP Flip grid, booster packs, holo card, aurora background — techniques inspired by a private animation library and re-implemented from scratch; all static under reduced motion. |
 
 ---
@@ -196,9 +197,10 @@ Created by the seed script (safe to run more than once):
         ├── pokemonTypes.js          # Type names and their Spanish labels
         ├── App.jsx                  # Session handling: login screen or Pokédex
         ├── urlState.js              # Navigation state <-> query string
-        ├── viewTransition.js        # Card → detail morph (View Transitions API)
-        ├── hooks/                   # useUrlState, useFavorites
-        └── components/              # AuthForm, PokemonBrowser, SearchBox, PokemonCard, PokemonDetail, HoloCard
+        ├── pokedexFilter.js         # Instant filtering, sorting and pagination over the Pokédex index
+        ├── flyToCollection.js       # Sprite flies into "Mi colección" when added
+        ├── hooks/                   # useUrlState, useFavorites, usePokedexIndex, useFlipGrid, useTheme
+        └── components/              # PokemonBrowser, FilterBar, Paginator, PokemonCard, BoosterPack, PokemonDetail, HoloCard…
     └── e2e/                         # Playwright flows + axe accessibility checks
 ```
 
