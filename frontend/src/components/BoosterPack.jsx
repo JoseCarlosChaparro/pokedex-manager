@@ -6,7 +6,6 @@ import { typeColor } from '../pokemonTypes'
 import { spriteUrl } from '../sprites'
 import { prefersReducedMotion } from '../motion'
 import { useTilt } from '../hooks/useTilt'
-import { playPackOpening } from '../packOpening'
 import PackStage from './PackStage'
 
 // Share of the pack's width the strip must be dragged before it tears
@@ -24,10 +23,15 @@ const tearDirectionFor = (clientX, drag) => (clientX < drag.startX ? TEAR_TOWARD
 // A click from the keyboard (Enter or Space) has detail 0; mouse and touch clicks have detail 1 or more
 const KEYBOARD_CLICK_DETAIL = 0
 
+// The pack animation (GSAP) loads on the first opening, so the browser chunk does not carry it
+function playPackOpeningLazily(options) {
+  return import('../packOpening').then(({ playPackOpening }) => playPackOpening(options))
+}
+
 // A newly favorited Pokémon arrives as a sealed booster pack. Drag the top strip sideways to tear it open,
 // or use the "Open pack" button (keyboard and non-drag alternative, WCAG 2.5.7).
 // Strategy pattern: playOpening is the animation; tests inject a fake so GSAP never runs in jsdom.
-export default function BoosterPack({ pokemon, position, density, onOpen, playOpening = playPackOpening }) {
+export default function BoosterPack({ pokemon, position, density, onOpen, playOpening = playPackOpeningLazily }) {
   const { t } = useTranslation()
   const { ref: packRef, onPointerMove: onTiltMove, onPointerLeave: onTiltLeave } = useTilt({
     maxDegrees: PACK_MAX_DEGREES,

@@ -1,13 +1,27 @@
 import { LogOut } from 'lucide-react'
-import { useCallback, useState } from 'react'
+import { Suspense, useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import AppFooter from './components/AppFooter'
 import AuthForm from './components/AuthForm'
 import LanguageToggle from './components/LanguageToggle'
-import PokemonBrowser from './components/PokemonBrowser'
+import { PokemonCardSkeleton } from './components/PokemonCard'
 import { apiRequest, clearToken, getToken } from './api'
 import ThemeToggle from './components/ThemeToggle'
+import { LazyPokemonBrowser } from './lazyComponents'
 import { useTheme } from './hooks/useTheme'
+
+const BROWSER_SKELETON_COUNT = 24
+
+// Shown while the browser chunk loads: the same skeleton cards the grid shows while its index loads
+function BrowserSkeleton() {
+  return (
+    <section aria-busy="true" className="mx-auto max-w-[1920px] px-4 py-6 sm:px-6 2xl:px-10">
+      <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-8">
+        {Array.from({ length: BROWSER_SKELETON_COUNT }, (_, i) => <PokemonCardSkeleton key={i} />)}
+      </ul>
+    </section>
+  )
+}
 
 export default function App() {
   const { t } = useTranslation()
@@ -58,7 +72,9 @@ export default function App() {
           </button>
         </div>
       </header>
-      <PokemonBrowser onUnauthorized={endSession} />
+      <Suspense fallback={<BrowserSkeleton />}>
+        <LazyPokemonBrowser onUnauthorized={endSession} />
+      </Suspense>
       <AppFooter />
     </div>
   )

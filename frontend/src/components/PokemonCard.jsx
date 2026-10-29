@@ -5,9 +5,12 @@ import PokemonCardFace from './PokemonCardFace'
 
 const STAGGER_MS = 25
 const MAX_STAGGERED = 24
+// Phone grids show 1 to 3 columns, so the first three cards cover the first row on every phone layout
+const FIRST_ROW_LENGTH = 3
 
 export default function PokemonCard({ pokemon, index, density, isFavorite, onOpen, onToggleFavorite }) {
   const [primary, secondary = primary] = pokemon.types ?? []
+  const isFirstRow = index < FIRST_ROW_LENGTH
 
   return (
     <li
@@ -25,7 +28,7 @@ export default function PokemonCard({ pokemon, index, density, isFavorite, onOpe
         onClick={(event) => onOpen(pokemon, event.currentTarget.querySelector('img'))}
         className={`pokemon-card group w-full text-left ${cardPadding(density)}`}
       >
-        <PokemonCardFace pokemon={pokemon} density={density} />
+        <PokemonCardFace pokemon={pokemon} density={density} isFirstRow={isFirstRow} />
       </button>
       <FavoriteButton
         pokemon={pokemon}

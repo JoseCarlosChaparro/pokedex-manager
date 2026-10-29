@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { COLLECTION_TARGET_SELECTOR, throwPokeBall } from '../flyToCollection'
@@ -6,6 +6,7 @@ import { useFavorites } from '../hooks/useFavorites'
 import { useFlipGrid } from '../hooks/useFlipGrid'
 import { usePokedexIndex } from '../hooks/usePokedexIndex'
 import { useUrlState } from '../hooks/useUrlState'
+import { LazyPokemonDetail, preloadPokemonDetail } from '../lazyComponents'
 import { prefersReducedMotion } from '../motion'
 import { filterPokedex, paginate } from '../pokedexFilter'
 import { POKEMON_TYPE_COLORS } from '../pokemonTypes'
@@ -17,7 +18,6 @@ import EmptyState from './EmptyState'
 import FilterBar from './FilterBar'
 import Paginator from './Paginator'
 import PokemonCard, { PokemonCardSkeleton } from './PokemonCard'
-import PokemonDetail from './PokemonDetail'
 import ViewTabs from './ViewTabs'
 
 const PAGE_SIZE = 24
@@ -185,7 +185,14 @@ export default function PokemonBrowser({ onUnauthorized, playTransition = playVi
       <div aria-live="polite" className="sr-only">
         {announcement}
       </div>
-      <ul ref={gridRef} aria-busy={isLoading} className={`grid gap-3 sm:gap-4 ${GRID_COLUMNS[url.density]}`}>
+      {/* Pointer over or focus on a card means the detail is likely next: start its download now (events bubble to the list) */}
+      <ul
+        ref={gridRef}
+        aria-busy={isLoading}
+        onPointerOver={preloadPokemonDetail}
+        onFocus={preloadPokemonDetail}
+        className={`grid gap-3 sm:gap-4 ${GRID_COLUMNS[url.density]}`}
+      >
         {isLoading
           ? Array.from({ length: PAGE_SIZE }, (_, i) => <PokemonCardSkeleton key={i} />)
           : items.map((pokemon, i) =>
@@ -213,15 +220,18 @@ export default function PokemonBrowser({ onUnauthorized, playTransition = playVi
 
       <Paginator page={page} totalPages={totalPages} onChange={(newPage) => changeFilters({ page: newPage })} />
 
+      {/* The detail chunk may still be loading: its own boundary keeps the grid from suspending with it */}
       {url.pokemon && (
-        <PokemonDetail
-          pokemonId={url.pokemon}
-          onClose={closePokemon}
-          onNavigate={showPokemon}
-          onUnauthorized={onUnauthorized}
-          isFavorite={isFavorite(url.pokemon)}
-          onToggleFavorite={toggleFavorite}
-        />
+        <Suspense fallback={null}>
+          <LazyPokemonDetail
+            pokemonId={url.pokemon}
+            onClose={closePokemon}
+            onNavigate={showPokemon}
+            onUnauthorized={onUnauthorized}
+            isFavorite={isFavorite(url.pokemon)}
+            onToggleFavorite={toggleFavorite}
+          />
+        </Suspense>
       )}
     </section>
   )
