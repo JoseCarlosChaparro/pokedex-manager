@@ -1,7 +1,7 @@
 [project]
 name = "pokedex-manager"
 version = "0.1.0"
-description = "Add your description here"
+description = "PokéDex Manager: FastAPI + MongoDB backend proxying PokéAPI, with JWT auth"
 readme = "README.md"
 authors = [
     { name = "JoseCarlosChaparro", email = "jc_chaparro@hotmail.com" }
@@ -16,7 +16,6 @@ dependencies = [
     "pymongo>=4.19.0",
 ]
 
-[project.scripts]
 pokedex-manager = "pokedex_manager:main"
 
 [build-system]

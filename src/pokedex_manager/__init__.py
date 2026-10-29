@@ -46,9 +46,5 @@ async def pokeapi_error_handler(request: Request, exc: PokeAPIError):
         content={"detail": str(exc)},
     )
 
-@app.get("/")
-async def root():
-    return {"message": "Hello World"}
-
 app.include_router(pokemon.router)
 app.include_router(auth.router)
