@@ -56,3 +56,8 @@ def auth_headers(client) -> dict:
     register(client, "ash@example.com")
     token = login(client, "ash@example.com").json()["access_token"]
     return {"Authorization": f"Bearer {token}"}
+
+
+@pytest.fixture
+def anyio_backend() -> str:
+    return "asyncio"

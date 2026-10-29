@@ -96,3 +96,10 @@ def test_detail_is_trimmed_to_what_the_ui_needs(client, auth_headers):
         },
         "cry": "https://cries.test/6.ogg",
     }
+
+
+def test_detail_rejects_names_that_could_reach_other_pokeapi_paths(client, auth_headers, fake_pokeapi):
+    response = client.get("/api/pokemon/..%2Ftype%2Ffire", headers=auth_headers)
+
+    assert response.status_code == 404
+    assert fake_pokeapi.requests == []

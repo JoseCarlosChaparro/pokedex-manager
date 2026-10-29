@@ -1,3 +1,5 @@
+import pytest
+
 from tests.conftest import login, register
 
 FAVORITES_URL = "/api/me/favorites"
@@ -67,3 +69,22 @@ def test_favorites_are_private_to_each_user(client, auth_headers):
 def test_favorites_require_a_token(client):
     assert client.get(FAVORITES_URL).status_code == 401
     assert client.put(f"{FAVORITES_URL}/25").status_code == 401
+
+
+@pytest.mark.anyio
+async def test_concurrent_adds_of_the_same_favorite_do_not_fail(settings):
+    import asyncio
+    from datetime import UTC, datetime
+
+    from pymongo import AsyncMongoClient
+
+    from pokedex_manager.repositories.favorites import FavoriteRepository
+
+    async with AsyncMongoClient(settings.mongo_url) as mongo:
+        repository = FavoriteRepository(mongo[settings.mongo_db_name])
+        await repository.ensure_indexes()
+        now = datetime.now(UTC)
+        await asyncio.gather(*(repository.add("u1", 25, "pikachu", now) for _ in range(10)))
+
+        assert len(await repository.list_for_user("u1")) == 1
+        await mongo.drop_database(settings.mongo_db_name)
