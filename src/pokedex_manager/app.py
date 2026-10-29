@@ -1,3 +1,4 @@
+import logging
 from contextlib import asynccontextmanager
 
 import httpx
@@ -8,7 +9,7 @@ from pymongo import AsyncMongoClient
 
 from pokedex_manager.cache import TTLCache
 from pokedex_manager.clock import Clock, system_clock
-from pokedex_manager.config import Settings
+from pokedex_manager.config import DEV_JWT_SECRET_KEY, Settings
 from pokedex_manager.exceptions.pokeapi import (
     PokeAPIError,
     PokeAPIServerError,
@@ -23,6 +24,8 @@ from pokedex_manager.routers import auth, favorites, pokemon
 from pokedex_manager.services.auth import TokenService
 from pokedex_manager.services.pokeapi import PokeAPIClient
 from pokedex_manager.services.rate_limit import LoginAttemptGuard
+
+logger = logging.getLogger(__name__)
 
 POKEAPI_ERROR_STATUS = {
     PokemonNotFoundError: status.HTTP_404_NOT_FOUND,
@@ -43,6 +46,8 @@ def create_app(
     clock: Clock = system_clock,
 ) -> FastAPI:
     """Composition root: the only place where concrete adapters (Mongo, HTTP, clock) are wired."""
+    if settings.jwt_secret_key == DEV_JWT_SECRET_KEY:
+        logger.warning("JWT_SECRET_KEY is not set: using the development secret. Never do this in production.")
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
