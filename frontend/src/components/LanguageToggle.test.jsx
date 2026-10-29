@@ -14,6 +14,14 @@ describe('LanguageToggle', () => {
     expect(localStorage.getItem('pokedex_lang')).toBe('en')
     expect(screen.getByRole('button', { name: 'English' })).toHaveAttribute('aria-pressed', 'true')
   })
+
+  // The toggle sits on a dark wrapper in light mode, so its codes must not inherit the dark page text
+  it('sets white text on the unpressed codes so they stay readable on the dark wrapper', () => {
+    render(<LanguageToggle />)
+
+    expect(screen.getByRole('button', { name: 'Español' })).toHaveClass('text-white')
+    expect(screen.getByRole('button', { name: 'English' })).toHaveClass('text-white')
+  })
 })
 
 describe('detectLanguage', () => {
