@@ -1,66 +1,54 @@
+from collections.abc import Callable
+
 import httpx
+
 from pokedex_manager.exceptions.pokeapi import (
-    PokemonNotFoundError,
+    PokeAPIError,
     PokeAPIServerError,
     PokeAPITimeoutError,
-    PokemonTypeNotFoundError
-    )
-
-POKEAPI_BASE_URL = "https://pokeapi.co/api/v2"
-
-POKEAPI_POKEMON_ENDPOINT_BASE_URL = POKEAPI_BASE_URL + '/pokemon'
-
-POKEAPI_TYPE_ENDPOINT_BASE_URL = f"{POKEAPI_BASE_URL}/type"
+    PokemonNotFoundError,
+    PokemonTypeNotFoundError,
+)
 
 
-async def _get_from_pokeapi(client: httpx.AsyncClient, url: str, params: dict | None = None):
-    try:
-        response = await client.get(url, params=params)
-    except httpx.TimeoutException as e:
-        raise PokeAPITimeoutError("PokeAPI timed out") from e
+class PokeAPIClient:
+    """Adapter pattern: speaks PokéAPI's HTTP API and returns plain data or domain errors."""
 
-    if response.is_server_error:
-        raise PokeAPIServerError("PokeAPI server error")
+    def __init__(self, http_client: httpx.AsyncClient, base_url: str):
+        self._http = http_client
+        self._base_url = base_url
 
-    return response
+    async def list_pokemon(self, limit: int, offset: int) -> dict:
+        return await self._get_json("/pokemon", params={"limit": limit, "offset": offset})
 
+    async def get_pokemon(self, id_or_name: str | int) -> dict:
+        key = str(id_or_name).strip().lower()
+        return await self._get_json(f"/pokemon/{key}", on_not_found=lambda: PokemonNotFoundError(key))
 
-async def get_pokemon_request(client: httpx.AsyncClient, limit: int, offset: int):
-    list_pokemon_url = POKEAPI_POKEMON_ENDPOINT_BASE_URL
-    response = await _get_from_pokeapi(client, list_pokemon_url, params={"limit": limit, "offset": offset})
-    return response.json()
+    async def list_pokemon_by_type(self, type_name: str, limit: int, offset: int) -> dict:
+        key = type_name.strip().lower()
+        data = await self._get_json(f"/type/{key}", on_not_found=lambda: PokemonTypeNotFoundError(key))
+        entries = data["pokemon"]
+        page = entries[offset : offset + limit]
+        return {"count": len(entries), "results": [entry["pokemon"] for entry in page]}
 
-async def get_pokemon_task(limit: int, offset: int):
-    async with httpx.AsyncClient() as client:
-        result = await get_pokemon_request(client, limit, offset)
-        return result
+    async def _get_json(
+        self,
+        path: str,
+        params: dict | None = None,
+        on_not_found: Callable[[], PokeAPIError] | None = None,
+    ) -> dict:
+        try:
+            response = await self._http.get(f"{self._base_url}{path}", params=params)
+        except httpx.TimeoutException as error:
+            raise PokeAPITimeoutError("PokeAPI timed out") from error
+        except httpx.TransportError as error:
+            raise PokeAPIServerError("PokeAPI is unreachable") from error
 
-async def get_pokemon_by_id_request(client: httpx.AsyncClient, id_or_name: str):
-    pokemon_by_id_url = f"{POKEAPI_POKEMON_ENDPOINT_BASE_URL}/{id_or_name}"
-    response = await _get_from_pokeapi(client,pokemon_by_id_url)
-
-    if response.status_code == httpx.codes.NOT_FOUND:
-        raise PokemonNotFoundError(id_or_name)
-
-    return response.json()
-
-async def get_pokemon_by_id_task(id_or_name: str):
-    async with httpx.AsyncClient() as client:
-        result = await get_pokemon_by_id_request(client, id_or_name)
-        return result
-
-async def get_pokemon_by_type_request(client: httpx.AsyncClient, type_name: str, limit: int, offset: int):
-    type_url = f"{POKEAPI_TYPE_ENDPOINT_BASE_URL}/{type_name}"
-    response = await _get_from_pokeapi(client, type_url)
-
-    if response.status_code == httpx.codes.NOT_FOUND:
-        raise PokemonTypeNotFoundError(type_name)
-
-    entries = response.json()["pokemon"]
-    page = entries[offset : offset + limit]
-    return {"count": len(entries), "results": [entry["pokemon"] for entry in page]}
-
-async def get_pokemon_by_type_task(type_name: str, limit: int, offset: int):
-    async with httpx.AsyncClient() as client:
-        result = await get_pokemon_by_type_request(client, type_name, limit, offset)
-        return result
+        if response.status_code == httpx.codes.NOT_FOUND and on_not_found:
+            raise on_not_found()
+        if response.is_server_error:
+            raise PokeAPIServerError("PokeAPI server error")
+        if not response.is_success:
+            raise PokeAPIError(f"Unexpected PokeAPI response: {response.status_code}")
+        return response.json()

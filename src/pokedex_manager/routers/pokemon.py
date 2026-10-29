@@ -1,26 +1,35 @@
-from fastapi import APIRouter, Query, HTTPException, status, Depends
-from pokedex_manager.services import pokeapi
-from pokedex_manager.dependencies import get_token_payload
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+
+from pokedex_manager.dependencies import get_pokeapi, get_token_payload
+from pokedex_manager.services.pokeapi import PokeAPIClient
 
 router = APIRouter(prefix="/api", tags=["Pokemon"], dependencies=[Depends(get_token_payload)])
 
+PokeAPI = Annotated[PokeAPIClient, Depends(get_pokeapi)]
+Limit = Annotated[int, Query(ge=1, le=50)]
+Offset = Annotated[int, Query(ge=0)]
+
+
 @router.get("/pokemon")
-async def get_pokemon(limit: int = Query(20, ge=1, le=50), offset: int = Query(0, ge=0)):
-    pokemon = await pokeapi.get_pokemon_task(limit, offset)
-    return pokemon
+async def list_pokemon(pokeapi: PokeAPI, limit: Limit = 20, offset: Offset = 0):
+    return await pokeapi.list_pokemon(limit, offset)
+
 
 @router.get("/pokemon/search")
-async def search_pokemon(name: str = Query(...)):
+async def search_pokemon(pokeapi: PokeAPI, name: str = Query(...)):
     clean_name = name.strip().lower()
     if not clean_name:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail="name must not be blank")
-    return await pokeapi.get_pokemon_by_id_task(clean_name)
+    return await pokeapi.get_pokemon(clean_name)
+
 
 @router.get("/pokemon/{id_or_name}")
-async def get_pokemon_by_id(id_or_name: str):
-    pokemon = await pokeapi.get_pokemon_by_id_task(id_or_name)
-    return pokemon
+async def get_pokemon(id_or_name: str, pokeapi: PokeAPI):
+    return await pokeapi.get_pokemon(id_or_name)
+
 
 @router.get("/pokemon/type/{type_name}")
-async def get_pokemon_by_type(type_name: str,limit: int = Query(20, ge=1, le=50),offset: int = Query(0, ge=0)):
-    return await pokeapi.get_pokemon_by_type_task(type_name.lower(), limit, offset)
+async def list_pokemon_by_type(type_name: str, pokeapi: PokeAPI, limit: Limit = 20, offset: Offset = 0):
+    return await pokeapi.list_pokemon_by_type(type_name, limit, offset)

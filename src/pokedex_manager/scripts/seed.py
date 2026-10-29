@@ -1,6 +1,9 @@
 import asyncio
 
-from pokedex_manager.db import client, users_collection
+from pymongo import AsyncMongoClient
+
+from pokedex_manager.config import Settings
+from pokedex_manager.repositories.users import UserRepository
 from pokedex_manager.services.auth import hash_password
 
 TEST_USERS = [
@@ -10,17 +13,15 @@ TEST_USERS = [
     {"email": "carlos.hernandez@example.com", "password": "Carlos12345"},
 ]
 
-async def seed_users() -> None:
-    await users_collection.create_index("email", unique=True)
-    for user in TEST_USERS:
-        await users_collection.update_one(
-            {"email": user["email"]},
-            {"$set": {"password_hash": hash_password(user["password"])}},
-            upsert=True,
-        )
-    await client.close()
+
+async def seed_users(settings: Settings) -> None:
+    async with AsyncMongoClient(settings.mongo_url) as mongo:
+        users = UserRepository(mongo[settings.mongo_db_name])
+        await users.ensure_indexes()
+        for user in TEST_USERS:
+            await users.upsert_password(user["email"], hash_password(user["password"]))
     print(f"Seeded {len(TEST_USERS)} test users")
 
 
 if __name__ == "__main__":
-    asyncio.run(seed_users())
+    asyncio.run(seed_users(Settings.from_env()))

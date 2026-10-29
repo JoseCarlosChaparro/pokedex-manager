@@ -1,17 +1,13 @@
-import os
-import jwt
 import uuid
+from datetime import UTC, datetime
+
+import jwt
 from pwdlib import PasswordHash
-from datetime import datetime, timedelta, timezone
 
-JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "dev-only-secret-change-me-in-production")
+from pokedex_manager.clock import Clock
+
 JWT_ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
-
-def create_access_token(subject: str) -> str:
-    expires_at = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    payload = {"sub": subject, "exp": expires_at, "jti": uuid.uuid4().hex}
-    return jwt.encode(payload, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
+ACCESS_TOKEN_LIFETIME_SECONDS = 60 * 60
 
 password_hasher = PasswordHash.recommended()
 
@@ -23,5 +19,33 @@ def hash_password(password: str) -> str:
 def verify_password(password: str, password_hash: str) -> bool:
     return password_hasher.verify(password, password_hash)
 
-def decode_access_token(token: str) -> dict:
-    return jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+
+class TokenService:
+    """Issues and validates access tokens. Expiration is checked against the injected clock."""
+
+    def __init__(self, secret_key: str, clock: Clock):
+        self._secret_key = secret_key
+        self._clock = clock
+
+    def create_access_token(self, subject: str) -> str:
+        payload = {
+            "sub": subject,
+            "exp": int(self._clock()) + ACCESS_TOKEN_LIFETIME_SECONDS,
+            "jti": uuid.uuid4().hex,
+        }
+        return jwt.encode(payload, self._secret_key, algorithm=JWT_ALGORITHM)
+
+    def decode_access_token(self, token: str) -> dict:
+        payload = jwt.decode(
+            token,
+            self._secret_key,
+            algorithms=[JWT_ALGORITHM],
+            options={"verify_exp": False, "require": ["sub", "exp", "jti"]},
+        )
+        if payload["exp"] <= self._clock():
+            raise jwt.ExpiredSignatureError("Signature has expired")
+        return payload
+
+    @staticmethod
+    def expires_at(payload: dict) -> datetime:
+        return datetime.fromtimestamp(payload["exp"], tz=UTC)
