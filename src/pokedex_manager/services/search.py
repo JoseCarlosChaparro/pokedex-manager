@@ -1,3 +1,4 @@
+from collections.abc import Sequence
 from typing import NamedTuple
 
 
@@ -6,7 +7,7 @@ class PokemonName(NamedTuple):
     name: str
 
 
-def suggest(index: list[PokemonName], query: str, limit: int) -> list[PokemonName]:
+def suggest(index: Sequence[PokemonName], query: str, limit: int) -> list[PokemonName]:
     """Autocomplete: Pokédex-number prefix for digits, otherwise name prefix matches before substring matches.
 
     Results keep the index order (Pokédex order).

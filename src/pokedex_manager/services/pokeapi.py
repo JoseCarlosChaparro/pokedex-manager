@@ -15,6 +15,7 @@ from pokedex_manager.services.search import PokemonName
 
 # Larger than the whole Pokédex, so a single request returns every name
 NAME_INDEX_LIMIT = 100_000
+NAME_INDEX_CACHE_KEY = ("name-index",)
 
 
 # PokéAPI returns height in decimeters and weight in hectograms
@@ -61,9 +62,15 @@ class PokeAPIClient:
         data = await self._get_json(f"/pokemon/{key}", on_not_found=lambda: PokemonNotFoundError(key))
         return _to_pokemon_detail(data)
 
-    async def get_name_index(self) -> list[PokemonName]:
-        data = await self._get_json("/pokemon", params={"limit": NAME_INDEX_LIMIT, "offset": 0})
-        return [PokemonName(_id_from_resource_url(entry["url"]), entry["name"]) for entry in data["results"]]
+    async def get_name_index(self) -> tuple[PokemonName, ...]:
+        """Every Pokémon name, parsed once per TTL (it is read on every autocomplete keystroke)."""
+        cached = self._cache.get(NAME_INDEX_CACHE_KEY)
+        if cached is not None:
+            return cached
+        data = await self._fetch_json("/pokemon", {"limit": NAME_INDEX_LIMIT, "offset": 0}, on_not_found=None)
+        index = tuple(PokemonName(_id_from_resource_url(entry["url"]), entry["name"]) for entry in data["results"])
+        self._cache.set(NAME_INDEX_CACHE_KEY, index)
+        return index
 
     async def list_pokemon_by_type(self, type_name: str, limit: int, offset: int) -> dict:
         key = type_name.strip().lower()
