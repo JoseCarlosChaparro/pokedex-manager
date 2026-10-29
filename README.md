@@ -5,6 +5,7 @@ a paginated list, search by name or number, a type filter and a detail view.
 
 - **Backend:** Python 3.12 · FastAPI · MongoDB · JWT
 - **Frontend:** React · Vite · Tailwind CSS
+- **Live demo:** https://pokedex.josechaparro.com — log in with any [test user](#test-users).
 
 ---
 
