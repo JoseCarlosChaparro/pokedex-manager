@@ -1,7 +1,8 @@
 import { useTranslation } from 'react-i18next'
 import { LANGUAGES } from '../i18n'
 
-// Visible code (ES/EN) sits inside the accessible name (Español/English), so label-in-name holds (WCAG 2.5.3)
+// The accessible name is the visible code plus the full name ("ES Español"), so label-in-name holds (WCAG 2.5.3).
+// The full name is sr-only and carries its own lang, so screen readers pronounce it in its language.
 export default function LanguageToggle() {
   const { t, i18n } = useTranslation()
   return (
@@ -13,12 +14,13 @@ export default function LanguageToggle() {
             key={language}
             type="button"
             aria-pressed={i18n.language === language}
-            aria-label={name}
             title={name}
             onClick={() => i18n.changeLanguage(language)}
             className="grid h-9 w-8 place-items-center rounded-lg text-xs font-bold text-white sm:w-9 aria-pressed:bg-white/90 aria-pressed:text-slate-900 aria-pressed:shadow-sm"
           >
             {language.toUpperCase()}
+            {' '}
+            <span lang={language} className="sr-only">{name}</span>
           </button>
         )
       })}
