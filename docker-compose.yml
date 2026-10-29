@@ -1,6 +1,9 @@
 services:
   mongo:
     image: mongo:7
+    # WiredTiger keeps a file per collection and index; the default limit is too low for test runs
+    ulimits:
+      nofile: { soft: 64000, hard: 64000 }
     ports:
       - "27017:27017"
     volumes:
