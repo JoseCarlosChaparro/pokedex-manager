@@ -21,7 +21,9 @@ class FavoriteRepository:
     async def add(self, user_id: str, pokemon_id: int, name: str, added_at: datetime) -> dict:
         """Idempotent: adding an existing favorite keeps its original date."""
         key = {"user_id": user_id, "pokemon_id": pokemon_id}
-        await self._collection.update_one(key, {"$setOnInsert": {"name": name, "added_at": added_at}}, upsert=True)
+        await self._collection.update_one(
+            key, {"$setOnInsert": {"name": name, "added_at": added_at, "opened": False}}, upsert=True
+        )
         return await self._collection.find_one(key, {"_id": 0, "user_id": 0})
 
     async def mark_opened(self, user_id: str, pokemon_id: int) -> dict | None:

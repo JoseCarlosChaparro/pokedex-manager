@@ -7,5 +7,6 @@ class Favorite(BaseModel):
     pokemon_id: int
     name: str
     added_at: datetime
-    # New favorites arrive as a sealed booster pack that the user opens once
-    opened: bool = False
+    # New favorites are stored with opened=False (a sealed pack); favorites saved before packs existed
+    # have no field and count as already opened
+    opened: bool = True

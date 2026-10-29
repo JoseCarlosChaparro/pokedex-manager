@@ -1,6 +1,6 @@
 import pytest
 
-from tests.conftest import login, register
+from tests.conftest import empty_database, login, register
 
 FAVORITES_URL = "/api/me/favorites"
 
@@ -73,6 +73,7 @@ def test_favorites_require_a_token(client):
 
 @pytest.mark.anyio
 async def test_concurrent_adds_of_the_same_favorite_do_not_fail(settings):
+    empty_database(settings)
     import asyncio
     from datetime import UTC, datetime
 
@@ -87,7 +88,6 @@ async def test_concurrent_adds_of_the_same_favorite_do_not_fail(settings):
         await asyncio.gather(*(repository.add("u1", 25, "pikachu", now) for _ in range(10)))
 
         assert len(await repository.list_for_user("u1")) == 1
-        await mongo.drop_database(settings.mongo_db_name)
 
 
 def test_new_favorites_arrive_as_sealed_packs(client, auth_headers):
@@ -115,3 +115,23 @@ def test_re_adding_an_opened_favorite_keeps_it_opened(client, auth_headers):
 
 def test_opening_a_pokemon_that_is_not_a_favorite_is_404(client, auth_headers):
     assert client.post(f"{FAVORITES_URL}/25/open", headers=auth_headers).status_code == 404
+
+
+@pytest.mark.anyio
+async def test_favorites_saved_before_packs_existed_count_as_opened(settings):
+    empty_database(settings)
+    from datetime import UTC, datetime
+
+    from pymongo import AsyncMongoClient
+
+    from pokedex_manager.models.favorite import Favorite
+    from pokedex_manager.repositories.favorites import FavoriteRepository
+
+    async with AsyncMongoClient(settings.mongo_url) as mongo:
+        database = mongo[settings.mongo_db_name]
+        await database["favorites"].insert_one(
+            {"user_id": "u1", "pokemon_id": 25, "name": "pikachu", "added_at": datetime.now(UTC)}
+        )
+        [legacy] = await FavoriteRepository(database).list_for_user("u1")
+
+        assert Favorite(**legacy).opened is True
