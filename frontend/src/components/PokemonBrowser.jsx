@@ -1,149 +1,207 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { apiRequest } from '../api'
+import { useFavorites } from '../hooks/useFavorites'
+import { useUrlState } from '../hooks/useUrlState'
 import { POKEMON_TYPE_LABELS } from '../pokemonTypes'
+import { VIEWS } from '../urlState'
+import { morphImage } from '../viewTransition'
+import PokemonCard, { PokemonCardSkeleton } from './PokemonCard'
 import PokemonDetail from './PokemonDetail'
+import SearchBox from './SearchBox'
 
-const PAGE_SIZE = 10
-const SPRITE_BASE_URL = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon'
-
+const PAGE_SIZE = 20
+const SUGGESTION_LIMIT = 8
+const UNAUTHORIZED = 401
+const NOT_FOUND = 404
 
 // PokéAPI list items only carry name + url; the id is the url's last path segment
 function getIdFromUrl(url) {
-  return url.split('/').filter(Boolean).pop()
+  return Number(url.split('/').filter(Boolean).pop())
+}
+
+const cardImage = (id) => document.querySelector(`[data-pokemon-id="${id}"] img`)
+const detailImage = () => document.querySelector('[data-detail-art]')
+
+function listRequestPath({ q, type, page }) {
+  if (q) return `/api/pokemon/search?name=${encodeURIComponent(q)}`
+  const listPath = type ? `/api/pokemon/type/${type}` : '/api/pokemon'
+  return `${listPath}?limit=${PAGE_SIZE}&offset=${(page - 1) * PAGE_SIZE}`
+}
+
+function toPage(data, isSearch) {
+  if (isSearch) return { count: 1, results: [{ id: data.id, name: data.name }] }
+  return { count: data.count, results: data.results.map((p) => ({ id: getIdFromUrl(p.url), name: p.name })) }
+}
+
+function errorMessage(err, q) {
+  if (q && err.status === NOT_FOUND) return `No encontramos "${q}".`
+  return q ? 'La búsqueda falló. Intenta de nuevo.' : 'No pudimos cargar los Pokémon. Intenta de nuevo.'
 }
 
 export default function PokemonBrowser({ onUnauthorized }) {
-  const [offset, setOffset] = useState(0)
-  const [typeFilter, setTypeFilter] = useState('')
-  const [page, setPage] = useState({ count: 0, results: [] })
-  const [searchTerm, setSearchTerm] = useState('')
-  const [searchResult, setSearchResult] = useState(null)
-  const [selectedId, setSelectedId] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+  const [url, setUrl] = useUrlState()
+  const { favorites, isFavorite, toggleFavorite, error: favoritesError } = useFavorites({ onUnauthorized })
+  // Response tagged with the request it answers; "loading" = the current request has no response yet
+  const [response, setResponse] = useState({ path: null, page: null, error: '' })
+
+  const isFavoritesView = url.view === VIEWS.favorites
+  const requestPath = isFavoritesView ? null : listRequestPath(url)
 
   useEffect(() => {
-    // Ignore responses that arrive after the user already moved to another page or type
+    if (!requestPath) return undefined
     let isStale = false
-    const listPath = typeFilter ? `/api/pokemon/type/${typeFilter}` : '/api/pokemon'
-    apiRequest(`${listPath}?limit=${PAGE_SIZE}&offset=${offset}`)
+    apiRequest(requestPath)
       .then((data) => {
-        if (!isStale) setPage(data)
+        if (!isStale) setResponse({ path: requestPath, page: toPage(data, Boolean(url.q)), error: '' })
       })
       .catch((err) => {
-        if (err.status === 401) onUnauthorized()
-        else if (!isStale) setError('No pudimos cargar los Pokémon. Intenta de nuevo.')
-      })
-      .finally(() => {
-        if (!isStale) setLoading(false)
+        if (err.status === UNAUTHORIZED) return onUnauthorized()
+        if (!isStale) setResponse({ path: requestPath, page: null, error: errorMessage(err, url.q) })
       })
     return () => {
       isStale = true
     }
-  }, [offset, typeFilter, onUnauthorized])
+  }, [requestPath, url.q, onUnauthorized])
 
-  function goToOffset(newOffset) {
-    setLoading(true)
-    setError('')
-    setOffset(newOffset)
+  const fetchSuggestions = useCallback(
+    (query) =>
+      apiRequest(`/api/pokemon/suggest?q=${encodeURIComponent(query)}&limit=${SUGGESTION_LIMIT}`).catch((err) => {
+        if (err.status === UNAUTHORIZED) onUnauthorized()
+        throw err
+      }),
+    [onUnauthorized],
+  )
+
+  const favoritesPage = {
+    count: favorites.length,
+    results: favorites.slice((url.page - 1) * PAGE_SIZE, url.page * PAGE_SIZE),
   }
+  const isLoading = !isFavoritesView && response.path !== requestPath
+  const page = isFavoritesView ? favoritesPage : response.page
+  const listError = isFavoritesView || isLoading ? '' : response.error
+  const totalPages = Math.max(1, Math.ceil((page?.count ?? 0) / PAGE_SIZE))
 
-  function clearSearch() {
-    setSearchTerm('')
-    setSearchResult(null)
-    setError('')
+  const openPokemon = (pokemon, fromImage) =>
+    morphImage(() => setUrl({ pokemon: String(pokemon.id) }), { from: fromImage, to: detailImage })
+  const closePokemon = () => {
+    const id = url.pokemon
+    morphImage(() => setUrl({ pokemon: null }), { from: detailImage(), to: () => cardImage(id) }).then(() =>
+      // Return keyboard focus to the card that opened the detail
+      document.querySelector(`[data-pokemon-id="${id}"] button`)?.focus(),
+    )
   }
-
-  function handleTypeChange(event) {
-    clearSearch()
-    setTypeFilter(event.target.value)
-    goToOffset(0)
-  }
-
-  async function handleSearch(event) {
-    event.preventDefault()
-    setError('')
-    try {
-      const pokemon = await apiRequest(`/api/pokemon/search?name=${encodeURIComponent(searchTerm)}`)
-      setSearchResult(pokemon)
-    } catch (err) {
-      if (err.status === 401) return onUnauthorized()
-      setSearchResult(null)
-      setError(err.status === 404 ? `No encontramos "${searchTerm}".` : 'La búsqueda falló. Intenta de nuevo.')
-    }
-  }
-
-  const visiblePokemon = searchResult
-    ? [{ id: searchResult.id, name: searchResult.name }]
-    : page.results.map((pokemon) => ({ id: getIdFromUrl(pokemon.url), name: pokemon.name }))
-  const currentPage = offset / PAGE_SIZE + 1
-  const totalPages = Math.ceil(page.count / PAGE_SIZE)
+  const showPokemon = (id) => setUrl({ pokemon: String(id) }, { replace: true })
 
   return (
-    <section className="mx-auto max-w-6xl p-4">
-      <div className="mb-4 flex flex-col gap-3 sm:flex-row">
-        <form onSubmit={handleSearch} className="flex flex-1 gap-2">
-          <input
-            type="search" required value={searchTerm} placeholder="Buscar por nombre o número"
-            aria-label="Buscar Pokémon" onChange={(e) => setSearchTerm(e.target.value)}
-            className="min-w-0 flex-1 rounded border bg-white px-3 py-2"
-          />
-          <button className="rounded bg-red-500 px-4 py-2 font-semibold text-white">Buscar</button>
-        </form>
-        <select
-          value={typeFilter} onChange={handleTypeChange} aria-label="Filtrar por tipo"
-          className="rounded border bg-white px-3 py-2"
-        >
-          <option value="">Todos los tipos</option>
-          {Object.entries(POKEMON_TYPE_LABELS).map(([value, label]) => (
-            <option key={value} value={value}>{label}</option>
-          ))}
-        </select>
+    <section className="mx-auto max-w-7xl px-4 py-4 sm:px-6">
+      <div className="mb-4 flex flex-col gap-3 md:flex-row">
+        <SearchBox
+          key={url.q}
+          initialValue={url.q}
+          fetchSuggestions={fetchSuggestions}
+          onSubmit={(q) => setUrl({ q, page: 1, view: VIEWS.all, pokemon: null })}
+          onSelect={(pokemon) => openPokemon(pokemon, null)}
+        />
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <div role="group" aria-label="Vista" className="flex rounded-lg bg-slate-200 p-1 dark:bg-slate-800">
+            {[
+              [VIEWS.all, 'Todos'],
+              [VIEWS.favorites, `Mi colección (${favorites.length})`],
+            ].map(([view, label]) => (
+              <button
+                key={view}
+                type="button"
+                aria-pressed={url.view === view}
+                onClick={() => setUrl({ view, page: 1, q: '' })}
+                className="min-h-9 rounded-md px-3 text-sm whitespace-nowrap aria-pressed:bg-white aria-pressed:font-semibold aria-pressed:shadow-sm dark:aria-pressed:bg-slate-600"
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          {!isFavoritesView && (
+            <select
+              value={url.type}
+              onChange={(event) => setUrl({ type: event.target.value, page: 1, q: '' })}
+              aria-label="Filtrar por tipo"
+              className="min-h-11 min-w-0 rounded-lg border border-slate-300 bg-white px-3 py-2 dark:border-slate-600 dark:bg-slate-800"
+            >
+              <option value="">Todos los tipos</option>
+              {Object.entries(POKEMON_TYPE_LABELS).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
       </div>
 
-      {error && <p role="alert" className="mb-4 rounded bg-red-100 p-3 text-red-700">{error}</p>}
+      {(listError || favoritesError) && (
+        <p role="alert" className="mb-4 rounded-lg bg-red-100 p-3 text-red-800 dark:bg-red-950 dark:text-red-200">
+          {listError || favoritesError}
+        </p>
+      )}
 
-      {searchResult && (
-        <button onClick={clearSearch} className="mb-4 text-sm text-slate-600 underline">
+      {url.q && (
+        <button type="button" onClick={() => setUrl({ q: '' })} className="mb-4 min-h-6 text-sm text-slate-600 underline dark:text-slate-300">
           Limpiar búsqueda
         </button>
       )}
 
-      {loading ? (
-        <p className="py-10 text-center text-slate-500">Cargando…</p>
-      ) : (
-        <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-          {visiblePokemon.map((pokemon) => (
-            <li key={pokemon.name}>
-              <button
-                onClick={() => setSelectedId(pokemon.id)}
-                className="w-full rounded-xl bg-white p-3 text-center shadow transition hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
-              >
-                <img src={`${SPRITE_BASE_URL}/${pokemon.id}.png`} alt="" loading="lazy" className="mx-auto h-24 w-24" />
-                <p className="text-sm text-slate-500">#{pokemon.id}</p>
-                <p className="font-semibold capitalize">{pokemon.name}</p>
-              </button>
-            </li>
-          ))}
-        </ul>
+      {isFavoritesView && favorites.length === 0 && (
+        <p className="py-10 text-center text-slate-500 dark:text-slate-400">
+          Tu colección está vacía. Toca el corazón de un Pokémon para guardarlo aquí.
+        </p>
       )}
 
-      {!searchResult && (
-        <nav className="mt-6 flex items-center justify-center gap-4">
-          <button disabled={offset === 0} onClick={() => goToOffset(offset - PAGE_SIZE)}
-            className="rounded bg-white px-4 py-2 shadow disabled:opacity-40">Anterior</button>
-          <span className="text-sm">Página {currentPage} de {totalPages || 1}</span>
-          <button disabled={currentPage >= totalPages} onClick={() => goToOffset(offset + PAGE_SIZE)}
-            className="rounded bg-white px-4 py-2 shadow disabled:opacity-40">Siguiente</button>
+      <ul aria-busy={isLoading} className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 xl:grid-cols-5">
+        {isLoading
+          ? Array.from({ length: PAGE_SIZE }, (_, index) => <PokemonCardSkeleton key={index} />)
+          : page?.results.map((pokemon, index) => (
+              <PokemonCard
+                key={pokemon.id}
+                pokemon={pokemon}
+                index={index}
+                isFavorite={isFavorite(pokemon.id)}
+                onOpen={openPokemon}
+                onToggleFavorite={toggleFavorite}
+              />
+            ))}
+      </ul>
+
+      {!url.q && totalPages > 1 && (
+        <nav aria-label="Paginación" className="mt-6 flex items-center justify-center gap-4">
+          <button
+            type="button"
+            disabled={url.page <= 1}
+            onClick={() => setUrl({ page: url.page - 1 })}
+            className="min-h-11 rounded-lg bg-white px-4 shadow-sm ring-1 ring-slate-200 disabled:opacity-40 dark:bg-slate-800 dark:ring-slate-700"
+          >
+            Anterior
+          </button>
+          <span className="text-sm">
+            Página {url.page} de {totalPages}
+          </span>
+          <button
+            type="button"
+            disabled={url.page >= totalPages}
+            onClick={() => setUrl({ page: url.page + 1 })}
+            className="min-h-11 rounded-lg bg-white px-4 shadow-sm ring-1 ring-slate-200 disabled:opacity-40 dark:bg-slate-800 dark:ring-slate-700"
+          >
+            Siguiente
+          </button>
         </nav>
       )}
 
-      {selectedId && (
+      {url.pokemon && (
         <PokemonDetail
-          key={selectedId}
-          pokemonId={selectedId}
-          onClose={() => setSelectedId(null)}
+          pokemonId={url.pokemon}
+          onClose={closePokemon}
+          onNavigate={showPokemon}
           onUnauthorized={onUnauthorized}
+          isFavorite={isFavorite(url.pokemon)}
+          onToggleFavorite={toggleFavorite}
         />
       )}
     </section>

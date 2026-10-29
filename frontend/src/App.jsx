@@ -21,10 +21,10 @@ export default function App() {
   if (!isAuthenticated) return <AuthForm onAuthenticated={() => setIsAuthenticated(true)} />
 
   return (
-    <div className="min-h-screen bg-slate-100">
-      <header className="flex items-center justify-between gap-2 bg-red-500 px-4 py-3 text-white">
+    <div className="min-h-screen bg-slate-100 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+      <header className="flex items-center justify-between gap-2 bg-red-600 px-4 py-3 text-white shadow-md sm:px-6">
         <h1 className="text-xl font-bold">PokéDex Manager</h1>
-        <button onClick={handleLogout} className="rounded border border-white px-3 py-1 text-sm">
+        <button onClick={handleLogout} className="min-h-11 rounded-lg border border-white/80 px-3 text-sm hover:bg-white/10">
           Cerrar sesión
         </button>
       </header>

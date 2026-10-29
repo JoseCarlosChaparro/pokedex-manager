@@ -1,8 +1,9 @@
 import { useEffect, useId, useRef, useState } from 'react'
+import { spriteUrl } from '../sprites'
 
 const SUGGESTION_DELAY_MS = 200
 const NO_ACTIVE_OPTION = -1
-const SPRITE_BASE_URL = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon'
+
 
 function isTypingTarget(element) {
   return element instanceof HTMLElement && (element.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(element.tagName))
@@ -133,7 +134,7 @@ export default function SearchBox({ initialValue = '', fetchSuggestions, onSubmi
                 }}
                 className="flex min-h-11 cursor-pointer items-center gap-2 px-3 capitalize aria-selected:bg-red-100 dark:aria-selected:bg-red-900/40"
               >
-                <img src={`${SPRITE_BASE_URL}/${suggestion.id}.png`} alt="" className="h-10 w-10" loading="lazy" />
+                <img src={spriteUrl(suggestion.id)} alt="" className="h-10 w-10" loading="lazy" />
                 <span className="flex-1">{suggestion.name.replaceAll('-', ' ')}</span>
                 <span className="text-sm text-slate-500 dark:text-slate-400">#{suggestion.id}</span>
               </li>
