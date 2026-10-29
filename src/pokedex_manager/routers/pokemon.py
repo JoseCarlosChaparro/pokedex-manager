@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from pokedex_manager.dependencies import get_pokeapi, get_token_payload
-from pokedex_manager.models.pokemon import PokemonDetail
+from pokedex_manager.models.pokemon import PokemonDetail, PokemonSummary
 from pokedex_manager.services.pokeapi import PokeAPIClient
 from pokedex_manager.services.search import suggest
 
@@ -17,6 +17,11 @@ Offset = Annotated[int, Query(ge=0)]
 @router.get("/pokemon")
 async def list_pokemon(pokeapi: PokeAPI, limit: Limit = 20, offset: Offset = 0):
     return await pokeapi.list_pokemon(limit, offset)
+
+
+@router.get("/pokemon/index", response_model=list[PokemonSummary])
+async def pokedex_index(pokeapi: PokeAPI):
+    return await pokeapi.get_pokedex_index()
 
 
 @router.get("/pokemon/suggest")

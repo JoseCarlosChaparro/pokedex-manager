@@ -103,3 +103,21 @@ def test_detail_rejects_names_that_could_reach_other_pokeapi_paths(client, auth_
 
     assert response.status_code == 404
     assert fake_pokeapi.requests == []
+
+
+def test_index_lists_every_pokemon_with_its_types(client, auth_headers):
+    response = client.get("/api/pokemon/index", headers=auth_headers)
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body[0] == {"id": 1, "name": "bulbasaur", "types": ["grass", "poison"]}
+    assert {"id": 6, "name": "charizard", "types": ["fire", "flying"]} in body
+    assert [p["id"] for p in body] == sorted(p["id"] for p in body)
+
+
+def test_index_is_built_once_within_ttl(client, auth_headers, fake_pokeapi):
+    client.get("/api/pokemon/index", headers=auth_headers)
+    calls_after_first = len(fake_pokeapi.requests)
+    client.get("/api/pokemon/index", headers=auth_headers)
+
+    assert len(fake_pokeapi.requests) == calls_after_first

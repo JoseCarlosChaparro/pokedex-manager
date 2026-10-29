@@ -94,8 +94,8 @@ class FakePokeAPI:
         return httpx.Response(404, text="Not Found")
 
     def _type(self, type_name: str) -> httpx.Response:
-        members = [(pid, name) for pid, name, types in FAKE_POKEMON if type_name in types]
+        members = [(pid, name, types.index(type_name) + 1) for pid, name, types in FAKE_POKEMON if type_name in types]
         if not members:
             return httpx.Response(404, text="Not Found")
-        entries = [{"slot": 1, "pokemon": {"name": n, "url": _resource_url("pokemon", p)}} for p, n in members]
+        entries = [{"slot": slot, "pokemon": {"name": n, "url": _resource_url("pokemon", p)}} for p, n, slot in members]
         return httpx.Response(200, json={"name": type_name, "pokemon": entries})

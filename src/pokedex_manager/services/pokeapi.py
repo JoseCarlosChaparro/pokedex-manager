@@ -1,3 +1,4 @@
+import asyncio
 from collections.abc import Callable
 
 import httpx
@@ -10,12 +11,17 @@ from pokedex_manager.exceptions.pokeapi import (
     PokemonNotFoundError,
     PokemonTypeNotFoundError,
 )
-from pokedex_manager.models.pokemon import Ability, PokemonDetail, PokemonImages, Stat
+from pokedex_manager.models.pokemon import Ability, PokemonDetail, PokemonImages, PokemonSummary, Stat
 from pokedex_manager.services.search import PokemonName
 
 # Larger than the whole Pokédex, so a single request returns every name
 NAME_INDEX_LIMIT = 100_000
 NAME_INDEX_CACHE_KEY = ("name-index",)
+POKEDEX_INDEX_CACHE_KEY = ("pokedex-index",)
+POKEMON_TYPES = (
+    "normal", "fire", "water", "grass", "electric", "ice", "fighting", "poison", "ground",
+    "flying", "psychic", "bug", "rock", "ghost", "dragon", "dark", "steel", "fairy",
+)  # fmt: skip
 
 
 # PokéAPI returns height in decimeters and weight in hectograms
@@ -71,6 +77,36 @@ class PokeAPIClient:
         index = tuple(PokemonName(_id_from_resource_url(entry["url"]), entry["name"]) for entry in data["results"])
         self._cache.set(NAME_INDEX_CACHE_KEY, index)
         return index
+
+    async def get_pokedex_index(self) -> tuple[PokemonSummary, ...]:
+        """Every Pokémon with its types, built from the 18 type lists (cached), so clients can filter instantly."""
+        cached = self._cache.get(POKEDEX_INDEX_CACHE_KEY)
+        if cached is not None:
+            return cached
+        type_lists = await asyncio.gather(*(self._type_entries(type_name) for type_name in POKEMON_TYPES))
+
+        slots_by_id: dict[int, dict] = {}
+        for type_name, entries in zip(POKEMON_TYPES, type_lists, strict=True):
+            for entry in entries:
+                pokemon_id = _id_from_resource_url(entry["pokemon"]["url"])
+                summary = slots_by_id.setdefault(pokemon_id, {"name": entry["pokemon"]["name"], "types": {}})
+                summary["types"][entry["slot"]] = type_name
+
+        index = tuple(
+            PokemonSummary(
+                id=pokemon_id, name=data["name"], types=[data["types"][slot] for slot in sorted(data["types"])]
+            )
+            for pokemon_id, data in sorted(slots_by_id.items())
+        )
+        self._cache.set(POKEDEX_INDEX_CACHE_KEY, index)
+        return index
+
+    async def _type_entries(self, type_name: str) -> list[dict]:
+        try:
+            data = await self._get_json(f"/type/{type_name}", on_not_found=lambda: PokemonTypeNotFoundError(type_name))
+        except PokemonTypeNotFoundError:
+            return []
+        return data["pokemon"]
 
     async def list_pokemon_by_type(self, type_name: str, limit: int, offset: int) -> dict:
         key = type_name.strip().lower()

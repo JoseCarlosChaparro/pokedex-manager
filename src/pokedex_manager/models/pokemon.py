@@ -27,3 +27,9 @@ class PokemonDetail(BaseModel):
     stats: list[Stat]
     images: PokemonImages
     cry: str | None
+
+
+class PokemonSummary(BaseModel):
+    id: int
+    name: str
+    types: list[str]
