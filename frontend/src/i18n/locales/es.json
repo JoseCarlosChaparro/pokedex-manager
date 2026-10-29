@@ -110,7 +110,6 @@
   "browser": {
     "view": "Vista",
     "viewAll": "Pokédex",
-    "viewFavorites": "Mi colección ({{count}})",
     "viewFavoritesName": "Mi colección",
     "collectionSubtitle": "{{number}} en tu colección",
     "sealedPacks_one": "1 sobre sin abrir",

@@ -8,6 +8,7 @@ import { usePokedexIndex } from '../hooks/usePokedexIndex'
 import { useUrlState } from '../hooks/useUrlState'
 import { LazyPokemonDetail, preloadPokemonDetail } from '../lazyComponents'
 import { prefersReducedMotion } from '../motion'
+import { CONTAINER_CLASS } from '../layout'
 import { filterPokedex, paginate } from '../pokedexFilter'
 import { POKEMON_TYPE_COLORS } from '../pokemonTypes'
 import { VIEWS } from '../urlState'
@@ -164,10 +165,9 @@ export default function PokemonBrowser({ onUnauthorized, playTransition = playVi
   const emptyAction = isCollectionEmpty ? () => changeView(VIEWS.all) : () => changeFilters(CLEARED_FILTERS)
   const error = indexError || favoritesError
 
+  // The tabs sit outside the section: their sticky bar spans the whole viewport
   return (
-    <section className="mx-auto max-w-[1920px] px-4 py-6 sm:px-6 2xl:px-10">
-      <AuroraBackground colors={auroraColors} />
-
+    <>
       <ViewTabs
         view={pendingView ?? url.view}
         totalCount={isLoading ? undefined : index.length}
@@ -176,71 +176,76 @@ export default function PokemonBrowser({ onUnauthorized, playTransition = playVi
         onChange={changeView}
       />
 
-      <FilterBar filters={url} resultCount={filtered.length} onChange={changeFilters} />
+      {/* Clips the view switch's slide at the viewport edge, so the page never gains a horizontal scroll mid-slide */}
+      <section className={`${CONTAINER_CLASS} overflow-x-clip pb-6`}>
+        <AuroraBackground colors={auroraColors} />
 
-      {error && (
-        <p role="alert" className="mb-4 rounded-xl bg-red-100 p-3 text-red-800 dark:bg-red-950 dark:text-red-200">
-          {t(error)}
-        </p>
-      )}
+        {!isCollectionEmpty && <FilterBar filters={url} resultCount={filtered.length} onChange={changeFilters} />}
 
-      {!isLoading && filtered.length === 0 && (
-        <EmptyState variant={emptyVariant} onAction={emptyAction} />
-      )}
+        {error && (
+          <p role="alert" className="mb-4 rounded-xl bg-red-100 p-3 text-red-800 dark:bg-red-950 dark:text-red-200">
+            {t(error)}
+          </p>
+        )}
 
-      <div aria-live="polite" className="sr-only">
-        {announcement}
-      </div>
-      {/* Pointer over or focus on a card means the detail is likely next: start its download now (events bubble to the list) */}
-      <ul
-        ref={gridRef}
-        aria-busy={isLoading}
-        onPointerOver={preloadDetailOnIntent}
-        onFocus={preloadDetailOnIntent}
-        className={`grid gap-3 sm:gap-4 ${GRID_COLUMNS[url.density]}`}
-      >
-        {isLoading
-          ? Array.from({ length: PAGE_SIZE }, (_, i) => <PokemonCardSkeleton key={i} />)
-          : items.map((pokemon, i) =>
-              isFavoritesView && pokemon.opened === false ? (
-                <BoosterPack
-                  key={`pack-${pokemon.id}`}
-                  pokemon={pokemon}
-                  position={(page - 1) * PAGE_SIZE + i + 1}
-                  density={url.density}
-                  onOpen={handlePackOpen}
-                />
-              ) : (
-                <PokemonCard
-                  key={pokemon.id}
-                  pokemon={pokemon}
-                  index={i}
-                  density={url.density}
-                  isFavorite={isFavorite(pokemon.id)}
-                  onOpen={openPokemon}
-                  onToggleFavorite={handleToggleFavorite}
-                />
-              ),
-            )}
-      </ul>
+        {!isLoading && filtered.length === 0 && (
+          <EmptyState variant={emptyVariant} onAction={emptyAction} />
+        )}
 
-      <Paginator page={page} totalPages={totalPages} onChange={(newPage) => changeFilters({ page: newPage })} />
+        <div aria-live="polite" className="sr-only">
+          {announcement}
+        </div>
+        {/* Pointer over or focus on a card means the detail is likely next: start its download now (events bubble to the list) */}
+        <ul
+          ref={gridRef}
+          aria-busy={isLoading}
+          onPointerOver={preloadDetailOnIntent}
+          onFocus={preloadDetailOnIntent}
+          className={`grid gap-3 sm:gap-4 ${GRID_COLUMNS[url.density]}`}
+        >
+          {isLoading
+            ? Array.from({ length: PAGE_SIZE }, (_, i) => <PokemonCardSkeleton key={i} />)
+            : items.map((pokemon, i) =>
+                isFavoritesView && pokemon.opened === false ? (
+                  <BoosterPack
+                    key={`pack-${pokemon.id}`}
+                    pokemon={pokemon}
+                    position={(page - 1) * PAGE_SIZE + i + 1}
+                    density={url.density}
+                    onOpen={handlePackOpen}
+                  />
+                ) : (
+                  <PokemonCard
+                    key={pokemon.id}
+                    pokemon={pokemon}
+                    index={i}
+                    density={url.density}
+                    isFavorite={isFavorite(pokemon.id)}
+                    onOpen={openPokemon}
+                    onToggleFavorite={handleToggleFavorite}
+                  />
+                ),
+              )}
+        </ul>
 
-      {/* The detail chunk may still be loading: its own boundary keeps the grid from suspending with it */}
-      {url.pokemon && (
-        <ChunkErrorBoundary>
-          <Suspense fallback={null}>
-            <LazyPokemonDetail
-              pokemonId={url.pokemon}
-              onClose={closePokemon}
-              onNavigate={showPokemon}
-              onUnauthorized={onUnauthorized}
-              isFavorite={isFavorite(url.pokemon)}
-              onToggleFavorite={toggleFavorite}
-            />
-          </Suspense>
-        </ChunkErrorBoundary>
-      )}
-    </section>
+        <Paginator page={page} totalPages={totalPages} onChange={(newPage) => changeFilters({ page: newPage })} />
+
+        {/* The detail chunk may still be loading: its own boundary keeps the grid from suspending with it */}
+        {url.pokemon && (
+          <ChunkErrorBoundary>
+            <Suspense fallback={null}>
+              <LazyPokemonDetail
+                pokemonId={url.pokemon}
+                onClose={closePokemon}
+                onNavigate={showPokemon}
+                onUnauthorized={onUnauthorized}
+                isFavorite={isFavorite(url.pokemon)}
+                onToggleFavorite={toggleFavorite}
+              />
+            </Suspense>
+          </ChunkErrorBoundary>
+        )}
+      </section>
+    </>
   )
 }

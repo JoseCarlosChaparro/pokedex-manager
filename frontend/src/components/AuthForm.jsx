@@ -47,8 +47,9 @@ export default function AuthForm({ onAuthenticated, toggles }) {
   return (
     <div className="relative isolate flex min-h-screen flex-col text-slate-900 dark:text-slate-100">
       <AuroraBackground />
-      <div className="absolute top-3 right-3 flex gap-1 rounded-xl bg-slate-900/90 p-0.5">{toggles}</div>
-      <main className="grid flex-1 place-items-center p-4">
+      {/* On phones the top padding clears the toolbar, so the hero mark is never hidden under it */}
+      <main className="grid flex-1 place-items-center p-4 pt-20 sm:pt-4">
+        <div className="absolute top-3 right-3 flex gap-1 rounded-xl bg-slate-900/90 p-0.5">{toggles}</div>
         <div className="w-full max-w-sm space-y-6">
           <BrandTitle as="h1" className={HERO_TITLE_CLASS} />
           <form onSubmit={handleSubmit} className="w-full space-y-4 rounded-3xl bg-white/85 p-6 shadow-2xl ring-1 ring-white/60 backdrop-blur-xl dark:bg-slate-900/80 dark:ring-white/10">

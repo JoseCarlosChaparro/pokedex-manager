@@ -16,7 +16,7 @@ export default function LanguageToggle() {
             aria-pressed={i18n.language === language}
             title={name}
             onClick={() => i18n.changeLanguage(language)}
-            className="grid h-9 w-8 place-items-center rounded-lg text-xs font-bold text-white sm:w-9 aria-pressed:bg-white/90 aria-pressed:text-slate-900 aria-pressed:shadow-sm"
+            className="grid h-9 w-8 place-items-center rounded-lg text-xs font-bold text-white max-[360px]:w-7 sm:w-9 aria-pressed:bg-white/90 aria-pressed:text-slate-900 aria-pressed:shadow-sm"
           >
             {language.toUpperCase()}
             {' '}

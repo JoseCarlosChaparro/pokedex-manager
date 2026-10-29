@@ -1,6 +1,6 @@
 import { act, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import PokemonBrowser from './PokemonBrowser'
 
 vi.mock('../hooks/usePokedexIndex', () => ({
@@ -20,6 +20,19 @@ vi.mock('../hooks/useFavorites', () => ({
     error: null,
   }),
 }))
+
+describe('PokemonBrowser empty collection', () => {
+  afterEach(() => window.history.replaceState(null, '', '/'))
+
+  // An empty collection has nothing to filter, so the filter card stays out of the way of the empty state
+  it('hides the filters when the collection is empty', () => {
+    window.history.replaceState(null, '', '/?view=favorites')
+    render(<PokemonBrowser onUnauthorized={vi.fn()} playTransition={vi.fn()} />)
+
+    expect(screen.getByText('Tu colección está vacía')).toBeInTheDocument()
+    expect(screen.queryByRole('searchbox')).not.toBeInTheDocument()
+  })
+})
 
 describe('PokemonBrowser view switch', () => {
   it('plays the grid transition toward the collection and then switches the view', async () => {

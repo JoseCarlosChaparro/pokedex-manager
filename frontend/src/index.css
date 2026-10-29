@@ -627,7 +627,8 @@ body {
   border-radius: 1rem 1rem 0 0;
   cursor: grab;
   touch-action: none;
-  font-size: 0.75rem;
+  /* Scales with the viewport so the hint fits a 300 px phone's pack */
+  font-size: clamp(0.625rem, 3vw, 0.75rem);
   font-weight: 800;
   letter-spacing: 0.05em;
   color: rgb(255 255 255 / 0.6);
@@ -745,6 +746,25 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .holo-reveal-card[data-foil-sweep]::after {
     animation: none;
+  }
+}
+
+/* The revealed card is the collection card scaled up: its sprite is a share of the card's width, so it grows
+   with the card and the hand-off into the grid keeps the same proportions */
+.holo-reveal-card .sprite-stage {
+  width: 60%;
+  height: auto;
+}
+
+.holo-reveal-card .sprite-stage img {
+  height: auto;
+}
+
+/* ── Footer: credits wrap on phones without a dot; from sm up a dot separates the items of a row ── */
+@media (min-width: 40rem) {
+  .footer-item + .footer-item::before {
+    content: "·";
+    margin-inline-end: 0.5rem;
   }
 }
 

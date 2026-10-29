@@ -145,9 +145,9 @@ export default function BoosterPack({ pokemon, position, density, onOpen, playOp
             onPointerCancel={handlePointerUp}
             aria-hidden="true"
           >
-            <span className="inline-flex items-center gap-2">
-              <MoveHorizontal aria-hidden="true" className="size-4" />
-              {t('pack.dragHint')}
+            <span className="inline-flex max-w-full min-w-0 items-center gap-1.5">
+              <MoveHorizontal aria-hidden="true" className="size-4 shrink-0" />
+              <span className="min-w-0 truncate">{t('pack.dragHint')}</span>
             </span>
           </div>
           <div className="booster__body">
