@@ -27,15 +27,16 @@ export default function App() {
 
   return (
     <div className="isolate min-h-screen text-slate-900 dark:text-slate-100">
-      <header className="sticky top-0 z-20 flex items-center justify-between gap-2 bg-red-600/90 px-4 py-2 text-white shadow-md backdrop-blur sm:px-6">
+      <header className="sticky top-0 z-20 flex items-center justify-between gap-1.5 bg-red-600/90 px-3 py-2 text-white shadow-md backdrop-blur sm:gap-2 sm:px-6">
         <h1 className="flex items-center gap-2 text-xl font-black tracking-tight">
           <span aria-hidden="true" className="pokeball" />
-          PokéDex Manager
+          PokéDex<span className="hidden sm:inline"> Manager</span>
         </h1>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2">
           <ThemeToggle theme={theme} onChange={setTheme} />
-        <button onClick={handleLogout} className="min-h-11 rounded-lg border border-white/80 px-3 text-sm hover:bg-white/10">
-          Cerrar sesión
+        <button onClick={handleLogout} className="min-h-11 rounded-lg border border-white/80 px-2.5 text-sm hover:bg-white/10 sm:px-3">
+          <span className="sm:hidden">Salir</span>
+          <span className="hidden sm:inline">Cerrar sesión</span>
         </button>
         </div>
       </header>
