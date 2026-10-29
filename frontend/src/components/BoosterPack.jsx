@@ -1,7 +1,7 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { DEFAULT_TYPE_COLOR, POKEMON_TYPE_COLORS } from '../pokemonTypes'
 import { spriteUrl } from '../sprites'
-import { prefersReducedMotion } from '../viewTransition'
+import { prefersReducedMotion } from '../motion'
 
 // Share of the pack's width the strip must be dragged before it tears
 const TEAR_THRESHOLD = 0.55
@@ -9,12 +9,14 @@ const REVEAL_MS = 900
 
 // A newly favorited Pokémon arrives as a sealed booster pack. Drag the top strip sideways to tear it open,
 // or use the "Abrir sobre" button (keyboard and non-drag alternative, WCAG 2.5.7).
-export default function BoosterPack({ pokemon, onOpen }) {
+export default function BoosterPack({ pokemon, position, onOpen }) {
   const packRef = useRef(null)
   const dragRef = useRef(null)
   const [isTorn, setIsTorn] = useState(false)
   // Synchronous guard: two quick clicks happen before React re-renders with isTorn = true
   const tornRef = useRef(false)
+  const revealTimerRef = useRef(null)
+  useEffect(() => () => window.clearTimeout(revealTimerRef.current), [])
   const [primary, secondary = primary] = pokemon.types ?? []
   const name = pokemon.name.replaceAll('-', ' ')
 
@@ -27,7 +29,7 @@ export default function BoosterPack({ pokemon, onOpen }) {
     tornRef.current = true
     setIsTorn(true)
     setProgress(1)
-    window.setTimeout(() => onOpen(pokemon), prefersReducedMotion() ? 0 : REVEAL_MS)
+    revealTimerRef.current = window.setTimeout(() => onOpen(pokemon), prefersReducedMotion() ? 0 : REVEAL_MS)
   }
 
   function handlePointerDown(event) {
@@ -89,7 +91,7 @@ export default function BoosterPack({ pokemon, onOpen }) {
         disabled={isTorn}
         className="mt-2 min-h-11 w-full rounded-xl bg-white/80 text-sm font-semibold ring-1 ring-slate-300/70 backdrop-blur hover:bg-white disabled:opacity-50 dark:bg-slate-800/80 dark:ring-slate-600"
       >
-        Abrir sobre <span className="sr-only">de {name}</span>
+        Abrir sobre <span className="sr-only">{position}</span>
       </button>
     </li>
   )

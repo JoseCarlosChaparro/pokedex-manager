@@ -10,19 +10,25 @@ describe('BoosterPack', () => {
 
   it('hides the Pokémon until the pack is opened with the button', async () => {
     const onOpen = vi.fn()
-    render(<BoosterPack pokemon={PIKACHU} onOpen={onOpen} />)
+    render(<BoosterPack pokemon={PIKACHU} position={1} onOpen={onOpen} />)
     expect(screen.getByText('pikachu').closest('.booster__reveal')).toHaveAttribute('aria-hidden', 'true')
 
-    await userEvent.click(screen.getByRole('button', { name: 'Abrir sobre de pikachu' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Abrir sobre 1' }))
 
     await vi.waitFor(() => expect(onOpen).toHaveBeenCalledWith(PIKACHU))
     expect(screen.getByRole('button', { name: /abrir sobre/i })).toBeDisabled()
   })
 
+  it('does not reveal the Pokémon in the button name', () => {
+    render(<BoosterPack pokemon={PIKACHU} position={1} onOpen={vi.fn()} />)
+
+    expect(screen.getByRole('button', { name: /abrir sobre/i })).not.toHaveAccessibleName(/pikachu/i)
+  })
+
   it('opens only once', async () => {
     vi.useFakeTimers()
     const onOpen = vi.fn()
-    render(<BoosterPack pokemon={PIKACHU} onOpen={onOpen} />)
+    render(<BoosterPack pokemon={PIKACHU} position={1} onOpen={onOpen} />)
     const button = screen.getByRole('button', { name: /abrir sobre/i })
 
     act(() => {
