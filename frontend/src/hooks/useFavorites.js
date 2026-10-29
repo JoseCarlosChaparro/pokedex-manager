@@ -5,6 +5,7 @@ const FAVORITES_PATH = '/api/me/favorites'
 const UNAUTHORIZED = 401
 
 // The user's personal collection. Changes show instantly (optimistic) and roll back if the server fails.
+// Errors are translation keys, so the view shows them in the current language.
 export function useFavorites({ onUnauthorized }) {
   const [favorites, setFavorites] = useState([])
   const [error, setError] = useState('')
@@ -27,7 +28,7 @@ export function useFavorites({ onUnauthorized }) {
         if (!isStale) setFavorites(data.map(({ pokemon_id, name, opened }) => ({ id: pokemon_id, name, opened: opened !== false })))
       })
       .catch((err) => {
-        if (!isStale) handleError(err, 'No pudimos cargar tu colección.')
+        if (!isStale) handleError(err, 'browser.collectionLoadError')
       })
     return () => {
       isStale = true
@@ -57,7 +58,7 @@ export function useFavorites({ onUnauthorized }) {
         await apiRequest(`${FAVORITES_PATH}/${id}`, { method: existing ? 'DELETE' : 'PUT' })
       } catch (err) {
         rollback()
-        handleError(err, 'No pudimos actualizar tu colección. Intenta de nuevo.')
+        handleError(err, 'browser.collectionUpdateError')
       } finally {
         pendingIdsRef.current.delete(id)
       }
@@ -76,7 +77,7 @@ export function useFavorites({ onUnauthorized }) {
         await apiRequest(`${FAVORITES_PATH}/${id}/open`, { method: 'POST' })
       } catch (err) {
         setOpened(false)
-        handleError(err, 'No pudimos abrir el sobre. Intenta de nuevo.')
+        handleError(err, 'pack.openError')
       }
     },
     [handleError],

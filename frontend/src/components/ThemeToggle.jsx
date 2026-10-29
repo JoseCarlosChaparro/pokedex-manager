@@ -1,17 +1,16 @@
 import { Monitor, Moon, Sun } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { THEMES } from '../hooks/useTheme'
 
-const THEME_OPTIONS = {
-  light: { Icon: Sun, label: 'Tema claro' },
-  system: { Icon: Monitor, label: 'Tema del sistema' },
-  dark: { Icon: Moon, label: 'Tema oscuro' },
-}
+const THEME_ICONS = { light: Sun, system: Monitor, dark: Moon }
 
 export default function ThemeToggle({ theme, onChange }) {
+  const { t } = useTranslation()
   return (
-    <div role="group" aria-label="Tema" className="flex rounded-xl bg-white/15 p-0.5 sm:p-1">
+    <div role="group" aria-label={t('theme.label')} className="flex rounded-xl bg-white/15 p-0.5 sm:p-1">
       {THEMES.map((option) => {
-        const { Icon, label } = THEME_OPTIONS[option]
+        const Icon = THEME_ICONS[option]
+        const label = t(`theme.${option}`)
         return (
           <button
             key={option}

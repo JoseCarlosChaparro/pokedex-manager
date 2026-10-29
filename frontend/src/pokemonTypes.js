@@ -1,13 +1,4 @@
-// Keys are PokéAPI type names (sent to the API); values are the Spanish labels shown to users
-export const POKEMON_TYPE_LABELS = {
-  normal: 'Normal', fire: 'Fuego', water: 'Agua', grass: 'Planta',
-  electric: 'Eléctrico', ice: 'Hielo', fighting: 'Lucha', poison: 'Veneno',
-  ground: 'Tierra', flying: 'Volador', psychic: 'Psíquico', bug: 'Bicho',
-  rock: 'Roca', ghost: 'Fantasma', dragon: 'Dragón', dark: 'Siniestro',
-  steel: 'Acero', fairy: 'Hada',
-}
-
-// Official-style type colors; used for badges and the holographic card tint
+// Official-style type colors; keys are PokéAPI type names (sent to the API and used as translation keys)
 export const POKEMON_TYPE_COLORS = {
   normal: '#9fa19f', fire: '#d92121', water: '#2980ef', grass: '#3fa129',
   electric: '#fac000', ice: '#3dcef3', fighting: '#ff8000', poison: '#9141cb',
@@ -15,6 +6,8 @@ export const POKEMON_TYPE_COLORS = {
   rock: '#afa981', ghost: '#704170', dragon: '#5060e1', dark: '#624d4e',
   steel: '#60a1b8', fairy: '#ef70ef',
 }
+
+export const POKEMON_TYPES = Object.keys(POKEMON_TYPE_COLORS)
 
 export const DEFAULT_TYPE_COLOR = POKEMON_TYPE_COLORS.normal
 

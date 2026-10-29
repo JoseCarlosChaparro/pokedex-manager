@@ -1,20 +1,20 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { apiRequest, saveToken } from '../api'
 import AuroraBackground from './AuroraBackground'
 
 const PASSWORD_MIN_LENGTH = 8
+const KNOWN_AUTH_ERROR_STATUSES = [401, 409, 422, 429]
 
-const AUTH_ERROR_MESSAGES = {
-  401: 'Email o contraseña incorrectos',
-  409: 'Ese email ya está registrado',
-  422: 'Revisa tu email y contraseña',
-  429: 'Demasiados intentos fallidos. Espera un minuto e intenta de nuevo.',
-}
+// Backend details are English and never shown: the HTTP status picks a translated message
+const authErrorKey = (status) => (KNOWN_AUTH_ERROR_STATUSES.includes(status) ? `auth.errors.${status}` : 'auth.errors.generic')
 
-export default function AuthForm({ onAuthenticated, themeToggle }) {
+export default function AuthForm({ onAuthenticated, toggles }) {
+  const { t } = useTranslation()
   const [isRegister, setIsRegister] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  // Holds a translation key, so the message follows the language if it changes
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -29,7 +29,7 @@ export default function AuthForm({ onAuthenticated, themeToggle }) {
       saveToken(access_token)
       onAuthenticated()
     } catch (err) {
-      setError(AUTH_ERROR_MESSAGES[err.status] ?? 'Algo salió mal, intenta de nuevo')
+      setError(authErrorKey(err.status))
     } finally {
       setLoading(false)
     }
@@ -43,13 +43,13 @@ export default function AuthForm({ onAuthenticated, themeToggle }) {
   return (
     <main className="relative isolate grid min-h-screen place-items-center p-4 text-slate-900 dark:text-slate-100">
       <AuroraBackground />
-      <div className="absolute top-3 right-3 rounded-xl bg-slate-900/70 p-0.5">{themeToggle}</div>
+      <div className="absolute top-3 right-3 flex gap-1 rounded-xl bg-slate-900/70 p-0.5">{toggles}</div>
       <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-4 rounded-3xl bg-white/85 p-6 shadow-2xl ring-1 ring-white/60 backdrop-blur-xl dark:bg-slate-900/80 dark:ring-white/10">
         <h1 className="text-center text-2xl font-bold">
-          {isRegister ? 'Crear cuenta' : 'Iniciar sesión'}
+          {isRegister ? t('auth.registerTitle') : t('auth.loginTitle')}
         </h1>
         <label className="block">
-          <span className="text-sm font-medium">Email</span>
+          <span className="text-sm font-medium">{t('auth.email')}</span>
           <input
             type="email" required value={email} autoComplete="email"
             onChange={(e) => setEmail(e.target.value)}
@@ -57,7 +57,7 @@ export default function AuthForm({ onAuthenticated, themeToggle }) {
           />
         </label>
         <label className="block">
-          <span className="text-sm font-medium">Contraseña</span>
+          <span className="text-sm font-medium">{t('auth.password')}</span>
           <input
             type="password" required value={password}
             autoComplete={isRegister ? 'new-password' : 'current-password'}
@@ -66,12 +66,12 @@ export default function AuthForm({ onAuthenticated, themeToggle }) {
             className="mt-1 min-h-11 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 dark:border-slate-600 dark:bg-slate-900"
           />
         </label>
-        {error && <p role="alert" className="text-sm text-red-700 dark:text-red-300">{error}</p>}
+        {error && <p role="alert" className="text-sm text-red-700 dark:text-red-300">{t(error)}</p>}
         <button disabled={loading} className="min-h-11 w-full rounded-lg bg-brand-600 py-2 font-semibold text-white hover:bg-brand-700 disabled:opacity-50">
-          {loading ? 'Cargando…' : isRegister ? 'Registrarme' : 'Entrar'}
+          {loading ? t('auth.loading') : isRegister ? t('auth.register') : t('auth.login')}
         </button>
         <button type="button" onClick={toggleMode} className="min-h-11 w-full text-sm text-slate-600 underline dark:text-slate-300">
-          {isRegister ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Regístrate'}
+          {isRegister ? t('auth.toLogin') : t('auth.toRegister')}
         </button>
       </form>
     </main>

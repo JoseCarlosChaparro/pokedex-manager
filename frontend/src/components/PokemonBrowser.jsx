@@ -1,5 +1,6 @@
 import { PackageOpen } from 'lucide-react'
 import { useEffect, useMemo, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { flyToCollection } from '../flyToCollection'
 import { useFavorites } from '../hooks/useFavorites'
 import { useFlipGrid } from '../hooks/useFlipGrid'
@@ -26,6 +27,7 @@ const GRID_COLUMNS = {
 const cardButton = (id) => document.querySelector(`[data-pokemon-id="${id}"] button`)
 
 export default function PokemonBrowser({ onUnauthorized }) {
+  const { t } = useTranslation()
   const [url, setUrl] = useUrlState()
   const { index, isLoading, error: indexError } = usePokedexIndex({ onUnauthorized })
   const { favorites, isFavorite, toggleFavorite, openPack, error: favoritesError } = useFavorites({ onUnauthorized })
@@ -92,10 +94,10 @@ export default function PokemonBrowser({ onUnauthorized }) {
     <section className="mx-auto max-w-[1920px] px-4 py-6 sm:px-6 2xl:px-10">
       <AuroraBackground colors={auroraColors} />
 
-      <div role="group" aria-label="Vista" className="mb-4 inline-flex rounded-2xl bg-white/60 p-1 ring-1 ring-slate-300/70 backdrop-blur dark:bg-slate-800/60 dark:ring-slate-600">
+      <div role="group" aria-label={t('browser.view')} className="mb-4 inline-flex rounded-2xl bg-white/60 p-1 ring-1 ring-slate-300/70 backdrop-blur dark:bg-slate-800/60 dark:ring-slate-600">
         {[
-          [VIEWS.all, 'Pokédex'],
-          [VIEWS.favorites, `Mi colección (${favorites.length})`],
+          [VIEWS.all, t('browser.viewAll')],
+          [VIEWS.favorites, t('browser.viewFavorites', { count: favorites.length })],
         ].map(([view, label]) => (
           <button
             key={view}
@@ -109,7 +111,7 @@ export default function PokemonBrowser({ onUnauthorized }) {
             {view === VIEWS.favorites && sealedCount > 0 && (
               <span className="absolute -top-1.5 -right-1.5 grid h-5 min-w-5 place-items-center rounded-full bg-amber-400 px-1 text-xs font-bold text-slate-900">
                 {sealedCount}
-                <span className="sr-only"> sobres sin abrir</span>
+                <span className="sr-only"> {t('browser.sealedPacks')}</span>
               </span>
             )}
           </button>
@@ -120,7 +122,7 @@ export default function PokemonBrowser({ onUnauthorized }) {
 
       {error && (
         <p role="alert" className="mb-4 rounded-xl bg-red-100 p-3 text-red-800 dark:bg-red-950 dark:text-red-200">
-          {error}
+          {t(error)}
         </p>
       )}
 
@@ -129,10 +131,10 @@ export default function PokemonBrowser({ onUnauthorized }) {
           {isFavoritesView && favorites.length === 0 ? (
             <>
               <PackageOpen aria-hidden="true" className="size-12" />
-              <p>Tu colección está vacía. Toca el corazón de un Pokémon y te llegará como sobre sellado.</p>
+              <p>{t('browser.emptyCollection')}</p>
             </>
           ) : (
-            <p>Ningún Pokémon coincide con esos filtros.</p>
+            <p>{t('browser.noResults')}</p>
           )}
         </div>
       )}

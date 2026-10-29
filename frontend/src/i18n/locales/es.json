@@ -1,0 +1,154 @@
+{
+  "app": {
+    "brand": "PokéDex",
+    "brandSuffix": "Manager",
+    "logout": "Cerrar sesión",
+    "logoutShort": "Salir"
+  },
+  "auth": {
+    "loginTitle": "Iniciar sesión",
+    "registerTitle": "Crear cuenta",
+    "email": "Email",
+    "password": "Contraseña",
+    "loading": "Cargando…",
+    "login": "Entrar",
+    "register": "Registrarme",
+    "toLogin": "¿Ya tienes cuenta? Inicia sesión",
+    "toRegister": "¿No tienes cuenta? Regístrate",
+    "errors": {
+      "401": "Email o contraseña incorrectos",
+      "409": "Ese email ya está registrado",
+      "422": "Revisa tu email y contraseña",
+      "429": "Demasiados intentos fallidos. Espera un minuto e intenta de nuevo.",
+      "generic": "Algo salió mal, intenta de nuevo"
+    }
+  },
+  "theme": {
+    "label": "Tema",
+    "light": "Tema claro",
+    "system": "Tema del sistema",
+    "dark": "Tema oscuro"
+  },
+  "language": {
+    "label": "Idioma",
+    "names": {
+      "es": "Español",
+      "en": "English"
+    }
+  },
+  "filters": {
+    "title": "Filtros",
+    "active_one": "Filtros, {{count}} activo",
+    "active_other": "Filtros, {{count}} activos",
+    "count_one": "{{number}} Pokémon",
+    "count_other": "{{number}} Pokémon",
+    "search": "Buscar Pokémon",
+    "searchPlaceholder": "Busca por nombre o número… (pika, #25)",
+    "generation": "Generación",
+    "allGenerations": "Todas las generaciones",
+    "sort": "Ordenar",
+    "cardSize": "Tamaño de las tarjetas",
+    "byType": "Filtrar por tipo",
+    "densityButton": "Tarjetas: {{density}}",
+    "clear": "Limpiar filtros"
+  },
+  "types": {
+    "normal": "Normal",
+    "fire": "Fuego",
+    "water": "Agua",
+    "grass": "Planta",
+    "electric": "Eléctrico",
+    "ice": "Hielo",
+    "fighting": "Lucha",
+    "poison": "Veneno",
+    "ground": "Tierra",
+    "flying": "Volador",
+    "psychic": "Psíquico",
+    "bug": "Bicho",
+    "rock": "Roca",
+    "ghost": "Fantasma",
+    "dragon": "Dragón",
+    "dark": "Siniestro",
+    "steel": "Acero",
+    "fairy": "Hada"
+  },
+  "generations": {
+    "1": "I · Kanto",
+    "2": "II · Johto",
+    "3": "III · Hoenn",
+    "4": "IV · Sinnoh",
+    "5": "V · Teselia",
+    "6": "VI · Kalos",
+    "7": "VII · Alola",
+    "8": "VIII · Galar",
+    "9": "IX · Paldea",
+    "forms": "Formas alternas"
+  },
+  "sorts": {
+    "id": "Número ↑",
+    "-id": "Número ↓",
+    "name": "Nombre A–Z",
+    "-name": "Nombre Z–A"
+  },
+  "density": {
+    "compact": "Compacta",
+    "comfy": "Normal",
+    "large": "Grande"
+  },
+  "pagination": {
+    "label": "Paginación",
+    "first": "Primera página",
+    "previous": "Página anterior",
+    "next": "Página siguiente",
+    "last": "Última página",
+    "page": "Página",
+    "currentOfTotal": "actual, de {{total}}",
+    "ofTotal": "de {{total}}"
+  },
+  "browser": {
+    "view": "Vista",
+    "viewAll": "Pokédex",
+    "viewFavorites": "Mi colección ({{count}})",
+    "sealedPacks": "sobres sin abrir",
+    "emptyCollection": "Tu colección está vacía. Toca el corazón de un Pokémon y te llegará como sobre sellado.",
+    "noResults": "Ningún Pokémon coincide con esos filtros.",
+    "indexError": "No pudimos cargar la Pokédex. Intenta de nuevo.",
+    "collectionLoadError": "No pudimos cargar tu colección.",
+    "collectionUpdateError": "No pudimos actualizar tu colección. Intenta de nuevo.",
+    "favoriteAdd": "Agregar a {{name}} a mi colección",
+    "favoriteRemove": "Quitar a {{name}} de mi colección",
+    "inCollection": "En tu colección",
+    "addToCollection": "Agregar a tu colección"
+  },
+  "pack": {
+    "dragHint": "arrastra para abrir",
+    "brand": "POKÉ PACK",
+    "question": "¿Quién será?",
+    "open": "Abrir sobre",
+    "openError": "No pudimos abrir el sobre. Intenta de nuevo."
+  },
+  "detail": {
+    "defaultTitle": "Pokémon",
+    "close": "Cerrar",
+    "loadError": "No pudimos cargar este Pokémon. Intenta de nuevo.",
+    "shinyAlt": "{{name}} (variocolor)",
+    "playCry": "Escuchar grito",
+    "shiny": "Variocolor",
+    "navLabel": "Pokémon anterior y siguiente",
+    "types": "Tipos",
+    "height": "Altura",
+    "weight": "Peso",
+    "meters": "{{value}} m",
+    "kilograms": "{{value}} kg",
+    "abilities": "Habilidades",
+    "hiddenAbility": "(oculta)"
+  },
+  "stats": {
+    "hp": "PS",
+    "attack": "Ataque",
+    "defense": "Defensa",
+    "special-attack": "At. esp.",
+    "special-defense": "Def. esp.",
+    "speed": "Velocidad"
+  }
+}

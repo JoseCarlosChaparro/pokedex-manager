@@ -1,5 +1,6 @@
 import { MoveHorizontal } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { DEFAULT_TYPE_COLOR, POKEMON_TYPE_COLORS } from '../pokemonTypes'
 import { spriteUrl } from '../sprites'
 import { prefersReducedMotion } from '../motion'
@@ -9,8 +10,9 @@ const TEAR_THRESHOLD = 0.55
 const REVEAL_MS = 900
 
 // A newly favorited Pokémon arrives as a sealed booster pack. Drag the top strip sideways to tear it open,
-// or use the "Abrir sobre" button (keyboard and non-drag alternative, WCAG 2.5.7).
+// or use the "Open pack" button (keyboard and non-drag alternative, WCAG 2.5.7).
 export default function BoosterPack({ pokemon, position, onOpen }) {
+  const { t } = useTranslation()
   const packRef = useRef(null)
   const dragRef = useRef(null)
   const [isTorn, setIsTorn] = useState(false)
@@ -76,13 +78,13 @@ export default function BoosterPack({ pokemon, position, onOpen }) {
         >
           <span className="inline-flex items-center gap-2">
             <MoveHorizontal aria-hidden="true" className="size-4" />
-            arrastra para abrir
+            {t('pack.dragHint')}
           </span>
         </div>
         <div className="booster__body">
-          <span className="booster__brand">POKÉ PACK</span>
+          <span className="booster__brand">{t('pack.brand')}</span>
           <img src={spriteUrl(pokemon.id)} alt="" className="booster__silhouette [image-rendering:pixelated]" />
-          <span className="booster__hint">¿Quién será?</span>
+          <span className="booster__hint">{t('pack.question')}</span>
         </div>
         <div className="booster__reveal" aria-hidden={!isTorn}>
           <img src={spriteUrl(pokemon.id)} alt="" className="h-24 w-24 [image-rendering:pixelated]" />
@@ -95,7 +97,7 @@ export default function BoosterPack({ pokemon, position, onOpen }) {
         disabled={isTorn}
         className="mt-2 min-h-11 w-full rounded-xl bg-white/80 text-sm font-semibold ring-1 ring-slate-300/70 backdrop-blur hover:bg-white disabled:opacity-50 dark:bg-slate-800/80 dark:ring-slate-600"
       >
-        Abrir sobre <span className="sr-only">{position}</span>
+        {t('pack.open')} <span className="sr-only">{position}</span>
       </button>
     </li>
   )

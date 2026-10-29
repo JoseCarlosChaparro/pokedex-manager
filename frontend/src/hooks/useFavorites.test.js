@@ -42,7 +42,7 @@ describe('useFavorites', () => {
     await act(() => result.current.toggleFavorite(PIKACHU))
 
     expect(result.current.isFavorite(25)).toBe(false)
-    expect(result.current.error).toMatch(/no pudimos/i)
+    expect(result.current.error).toBe('browser.collectionUpdateError')
   })
 
   it('removes a favorite', async () => {

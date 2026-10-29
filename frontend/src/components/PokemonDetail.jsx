@@ -1,19 +1,12 @@
 import { ChevronLeft, ChevronRight, Sparkles, Volume2, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { apiRequest } from '../api'
-import { DEFAULT_TYPE_COLOR, POKEMON_TYPE_COLORS, POKEMON_TYPE_LABELS, readableTextColor } from '../pokemonTypes'
+import { DEFAULT_TYPE_COLOR, POKEMON_TYPE_COLORS, readableTextColor } from '../pokemonTypes'
 import { artworkUrl, spriteUrl } from '../sprites'
 import FavoriteButton from './FavoriteButton'
 import HoloCard, { HoloArt } from './HoloCard'
 
-const STAT_LABELS = {
-  hp: 'PS',
-  attack: 'Ataque',
-  defense: 'Defensa',
-  'special-attack': 'At. esp.',
-  'special-defense': 'Def. esp.',
-  speed: 'Velocidad',
-}
 const MAX_BASE_STAT = 255
 const FIRST_POKEMON_ID = 1
 const NATIONAL_DEX_SIZE = 1025
@@ -26,6 +19,7 @@ function isTyping() {
 }
 
 export default function PokemonDetail({ pokemonId, onClose, onNavigate, onUnauthorized, isFavorite, onToggleFavorite }) {
+  const { t } = useTranslation()
   // Response tagged with the id it belongs to; while ids differ the previous card stays visible
   const [result, setResult] = useState({ id: null, pokemon: null, error: '' })
   const [showShiny, setShowShiny] = useState(false)
@@ -40,7 +34,7 @@ export default function PokemonDetail({ pokemonId, onClose, onNavigate, onUnauth
       })
       .catch((err) => {
         if (err.status === UNAUTHORIZED) return onUnauthorized()
-        if (!isStale) setResult({ id: pokemonId, pokemon: null, error: 'No pudimos cargar este Pokémon. Intenta de nuevo.' })
+        if (!isStale) setResult({ id: pokemonId, pokemon: null, error: 'detail.loadError' })
       })
     return () => {
       isStale = true
@@ -87,7 +81,8 @@ export default function PokemonDetail({ pokemonId, onClose, onNavigate, onUnauth
 
   const typeColor = POKEMON_TYPE_COLORS[pokemon?.types[0]] ?? DEFAULT_TYPE_COLOR
   const art = showShiny && pokemon?.images.shiny ? pokemon.images.shiny : (pokemon?.images.artwork ?? artworkUrl(id))
-  const title = pokemon ? formatName(pokemon.name) : 'Pokémon'
+  const title = pokemon ? formatName(pokemon.name) : t('detail.defaultTitle')
+  const imageAlt = showShiny ? t('detail.shinyAlt', { name: title }) : title
 
   return (
     <dialog
@@ -110,7 +105,7 @@ export default function PokemonDetail({ pokemonId, onClose, onNavigate, onUnauth
             type="button"
             autoFocus
             onClick={onClose}
-            aria-label="Cerrar"
+            aria-label={t('detail.close')}
             className="grid h-11 w-11 place-items-center rounded-full bg-white/80 shadow-sm dark:bg-slate-900/70"
           >
             <X aria-hidden="true" className="size-5" />
@@ -127,7 +122,7 @@ export default function PokemonDetail({ pokemonId, onClose, onNavigate, onUnauth
           <HoloArt>
           <img
             src={art}
-            alt={pokemon ? `${title}${showShiny ? ' (variocolor)' : ''}` : ''}
+            alt={pokemon ? imageAlt : ''}
             onError={(event) => {
               event.currentTarget.onerror = null
               event.currentTarget.src = spriteUrl(id)
@@ -143,13 +138,13 @@ export default function PokemonDetail({ pokemonId, onClose, onNavigate, onUnauth
 
             {result.error && !isLoading && (
               <p role="alert" className="mt-3 rounded-lg bg-red-100 p-3 text-red-800">
-                {result.error}
+                {t(result.error)}
               </p>
             )}
 
             {pokemon && (
               <>
-                <ul className="my-3 flex justify-center gap-2" aria-label="Tipos">
+                <ul className="my-3 flex justify-center gap-2" aria-label={t('detail.types')}>
                   {pokemon.types.map((type) => {
                     const color = POKEMON_TYPE_COLORS[type] ?? DEFAULT_TYPE_COLOR
                     return (
@@ -158,7 +153,7 @@ export default function PokemonDetail({ pokemonId, onClose, onNavigate, onUnauth
                       style={{ backgroundColor: color, color: readableTextColor(color) }}
                       className="rounded-full px-3 py-1 text-sm font-semibold"
                     >
-                      {POKEMON_TYPE_LABELS[type] ?? type}
+                      {t(`types.${type}`, { defaultValue: type })}
                     </li>
                     )
                   })}
@@ -168,7 +163,7 @@ export default function PokemonDetail({ pokemonId, onClose, onNavigate, onUnauth
                   {pokemon.cry && (
                     <button type="button" onClick={playCry} className="min-h-11 rounded-full bg-white/80 px-4 text-sm font-medium shadow-sm dark:bg-slate-900/70">
                       <Volume2 aria-hidden="true" className="mr-1 inline size-4" />
-                      Escuchar grito
+                      {t('detail.playCry')}
                     </button>
                   )}
                   {pokemon.images.shiny && (
@@ -179,7 +174,7 @@ export default function PokemonDetail({ pokemonId, onClose, onNavigate, onUnauth
                       className="min-h-11 rounded-full bg-white/80 px-4 text-sm font-medium shadow-sm aria-pressed:bg-amber-200 dark:bg-slate-900/70 dark:aria-pressed:bg-amber-700"
                     >
                       <Sparkles aria-hidden="true" className="mr-1 inline size-4" />
-                      Variocolor
+                      {t('detail.shiny')}
                     </button>
                   )}
                 </div>
@@ -187,7 +182,7 @@ export default function PokemonDetail({ pokemonId, onClose, onNavigate, onUnauth
                 <dl className="space-y-1.5 rounded-2xl bg-white/70 p-4 text-sm dark:bg-slate-900/60">
                   {pokemon.stats.map(({ name, value }) => (
                     <div key={name} className="grid grid-cols-[6rem_2.5rem_1fr] items-center gap-2">
-                      <dt className="font-medium">{STAT_LABELS[name] ?? name}</dt>
+                      <dt className="font-medium">{t(`stats.${name}`, { defaultValue: name })}</dt>
                       <dd className="text-right font-mono tabular-nums">{value}</dd>
                       <dd aria-hidden="true" className="h-2 overflow-hidden rounded-full bg-black/10 dark:bg-white/10">
                         <div
@@ -201,21 +196,21 @@ export default function PokemonDetail({ pokemonId, onClose, onNavigate, onUnauth
 
                 <dl className="mt-3 grid grid-cols-2 gap-2 text-center text-sm">
                   <div className="rounded-2xl bg-white/70 p-3 dark:bg-slate-900/60">
-                    <dt className="text-slate-600 dark:text-slate-300">Altura</dt>
-                    <dd className="text-lg font-bold">{pokemon.height_m} m</dd>
+                    <dt className="text-slate-600 dark:text-slate-300">{t('detail.height')}</dt>
+                    <dd className="text-lg font-bold">{t('detail.meters', { value: pokemon.height_m })}</dd>
                   </div>
                   <div className="rounded-2xl bg-white/70 p-3 dark:bg-slate-900/60">
-                    <dt className="text-slate-600 dark:text-slate-300">Peso</dt>
-                    <dd className="text-lg font-bold">{pokemon.weight_kg} kg</dd>
+                    <dt className="text-slate-600 dark:text-slate-300">{t('detail.weight')}</dt>
+                    <dd className="text-lg font-bold">{t('detail.kilograms', { value: pokemon.weight_kg })}</dd>
                   </div>
                 </dl>
 
-                <h3 className="mt-4 font-semibold">Habilidades</h3>
+                <h3 className="mt-4 font-semibold">{t('detail.abilities')}</h3>
                 <ul className="mt-1 flex flex-wrap gap-2 text-sm capitalize">
                   {pokemon.abilities.map(({ name, is_hidden }) => (
                     <li key={name} className="rounded-full bg-white/70 px-3 py-1 dark:bg-slate-900/60">
                       {formatName(name)}
-                      {is_hidden && <span className="ml-1 text-xs text-slate-600 normal-case dark:text-slate-300">(oculta)</span>}
+                      {is_hidden && <span className="ml-1 text-xs text-slate-600 normal-case dark:text-slate-300">{t('detail.hiddenAbility')}</span>}
                     </li>
                   ))}
                 </ul>
@@ -223,7 +218,7 @@ export default function PokemonDetail({ pokemonId, onClose, onNavigate, onUnauth
             )}
 
             {isNationalDexId && (
-            <nav aria-label="Pokémon anterior y siguiente" className="mt-5 flex justify-between gap-2">
+            <nav aria-label={t('detail.navLabel')} className="mt-5 flex justify-between gap-2">
               <button
                 type="button"
                 disabled={!canGoBack}

@@ -1,22 +1,24 @@
 // Client-side filtering over the full Pokédex index: instant results while typing or toggling filters.
+// Generation ids are translation keys (generations.<id>); labels live in the locale files
 export const GENERATIONS = [
-  { id: '1', label: 'I · Kanto', min: 1, max: 151 },
-  { id: '2', label: 'II · Johto', min: 152, max: 251 },
-  { id: '3', label: 'III · Hoenn', min: 252, max: 386 },
-  { id: '4', label: 'IV · Sinnoh', min: 387, max: 493 },
-  { id: '5', label: 'V · Teselia', min: 494, max: 649 },
-  { id: '6', label: 'VI · Kalos', min: 650, max: 721 },
-  { id: '7', label: 'VII · Alola', min: 722, max: 809 },
-  { id: '8', label: 'VIII · Galar', min: 810, max: 905 },
-  { id: '9', label: 'IX · Paldea', min: 906, max: 1025 },
-  { id: 'forms', label: 'Formas alternas', min: 1026, max: Number.POSITIVE_INFINITY },
+  { id: '1', min: 1, max: 151 },
+  { id: '2', min: 152, max: 251 },
+  { id: '3', min: 252, max: 386 },
+  { id: '4', min: 387, max: 493 },
+  { id: '5', min: 494, max: 649 },
+  { id: '6', min: 650, max: 721 },
+  { id: '7', min: 722, max: 809 },
+  { id: '8', min: 810, max: 905 },
+  { id: '9', min: 906, max: 1025 },
+  { id: 'forms', min: 1026, max: Number.POSITIVE_INFINITY },
 ]
 
+// Sort keys are translation keys (sorts.<key>)
 export const SORTS = {
-  id: { label: 'Número ↑', compare: (a, b) => a.id - b.id },
-  '-id': { label: 'Número ↓', compare: (a, b) => b.id - a.id },
-  name: { label: 'Nombre A–Z', compare: (a, b) => a.name.localeCompare(b.name) },
-  '-name': { label: 'Nombre Z–A', compare: (a, b) => b.name.localeCompare(a.name) },
+  id: { compare: (a, b) => a.id - b.id },
+  '-id': { compare: (a, b) => b.id - a.id },
+  name: { compare: (a, b) => a.name.localeCompare(b.name) },
+  '-name': { compare: (a, b) => b.name.localeCompare(a.name) },
 }
 
 export const generationOf = (id) => GENERATIONS.find((gen) => id >= gen.min && id <= gen.max)

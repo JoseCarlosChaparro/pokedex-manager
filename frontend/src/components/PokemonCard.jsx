@@ -1,4 +1,5 @@
-import { DEFAULT_TYPE_COLOR, POKEMON_TYPE_COLORS, POKEMON_TYPE_LABELS } from '../pokemonTypes'
+import { useTranslation } from 'react-i18next'
+import { DEFAULT_TYPE_COLOR, POKEMON_TYPE_COLORS } from '../pokemonTypes'
 import { artworkUrl, spriteUrl } from '../sprites'
 import FavoriteButton from './FavoriteButton'
 
@@ -8,6 +9,7 @@ const MAX_STAGGERED = 24
 const typeColor = (type) => POKEMON_TYPE_COLORS[type] ?? DEFAULT_TYPE_COLOR
 
 export default function PokemonCard({ pokemon, index, density, isFavorite, onOpen, onToggleFavorite }) {
+  const { t } = useTranslation()
   const [primary, secondary = primary] = pokemon.types ?? []
   const isLarge = density === 'large'
   const isCompact = density === 'compact'
@@ -51,7 +53,7 @@ export default function PokemonCard({ pokemon, index, density, isFavorite, onOpe
           <span className="relative mt-1.5 flex flex-wrap gap-1">
             {pokemon.types.map((type) => (
               <span key={type} className="pokemon-card__type" style={{ '--type': typeColor(type) }}>
-                {POKEMON_TYPE_LABELS[type] ?? type}
+                {t(`types.${type}`, { defaultValue: type })}
               </span>
             ))}
           </span>

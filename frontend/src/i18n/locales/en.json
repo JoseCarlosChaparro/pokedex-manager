@@ -1,0 +1,154 @@
+{
+  "app": {
+    "brand": "PokéDex",
+    "brandSuffix": "Manager",
+    "logout": "Log out",
+    "logoutShort": "Log out"
+  },
+  "auth": {
+    "loginTitle": "Log in",
+    "registerTitle": "Create account",
+    "email": "Email",
+    "password": "Password",
+    "loading": "Loading…",
+    "login": "Log in",
+    "register": "Sign up",
+    "toLogin": "Already have an account? Log in",
+    "toRegister": "No account yet? Sign up",
+    "errors": {
+      "401": "Incorrect email or password",
+      "409": "That email is already registered",
+      "422": "Check your email and password",
+      "429": "Too many failed attempts. Wait a minute and try again.",
+      "generic": "Something went wrong, please try again"
+    }
+  },
+  "theme": {
+    "label": "Theme",
+    "light": "Light theme",
+    "system": "System theme",
+    "dark": "Dark theme"
+  },
+  "language": {
+    "label": "Language",
+    "names": {
+      "es": "Español",
+      "en": "English"
+    }
+  },
+  "filters": {
+    "title": "Filters",
+    "active_one": "Filters, {{count}} active",
+    "active_other": "Filters, {{count}} active",
+    "count_one": "{{number}} Pokémon",
+    "count_other": "{{number}} Pokémon",
+    "search": "Search Pokémon",
+    "searchPlaceholder": "Search by name or number… (pika, #25)",
+    "generation": "Generation",
+    "allGenerations": "All generations",
+    "sort": "Sort",
+    "cardSize": "Card size",
+    "byType": "Filter by type",
+    "densityButton": "Cards: {{density}}",
+    "clear": "Clear filters"
+  },
+  "types": {
+    "normal": "Normal",
+    "fire": "Fire",
+    "water": "Water",
+    "grass": "Grass",
+    "electric": "Electric",
+    "ice": "Ice",
+    "fighting": "Fighting",
+    "poison": "Poison",
+    "ground": "Ground",
+    "flying": "Flying",
+    "psychic": "Psychic",
+    "bug": "Bug",
+    "rock": "Rock",
+    "ghost": "Ghost",
+    "dragon": "Dragon",
+    "dark": "Dark",
+    "steel": "Steel",
+    "fairy": "Fairy"
+  },
+  "generations": {
+    "1": "I · Kanto",
+    "2": "II · Johto",
+    "3": "III · Hoenn",
+    "4": "IV · Sinnoh",
+    "5": "V · Unova",
+    "6": "VI · Kalos",
+    "7": "VII · Alola",
+    "8": "VIII · Galar",
+    "9": "IX · Paldea",
+    "forms": "Alternate forms"
+  },
+  "sorts": {
+    "id": "Number ↑",
+    "-id": "Number ↓",
+    "name": "Name A–Z",
+    "-name": "Name Z–A"
+  },
+  "density": {
+    "compact": "Compact",
+    "comfy": "Regular",
+    "large": "Large"
+  },
+  "pagination": {
+    "label": "Pagination",
+    "first": "First page",
+    "previous": "Previous page",
+    "next": "Next page",
+    "last": "Last page",
+    "page": "Page",
+    "currentOfTotal": "current, of {{total}}",
+    "ofTotal": "of {{total}}"
+  },
+  "browser": {
+    "view": "View",
+    "viewAll": "Pokédex",
+    "viewFavorites": "My collection ({{count}})",
+    "sealedPacks": "unopened packs",
+    "emptyCollection": "Your collection is empty. Tap the heart on a Pokémon and it will arrive as a sealed pack.",
+    "noResults": "No Pokémon match these filters.",
+    "indexError": "We couldn't load the Pokédex. Please try again.",
+    "collectionLoadError": "We couldn't load your collection.",
+    "collectionUpdateError": "We couldn't update your collection. Please try again.",
+    "favoriteAdd": "Add {{name}} to my collection",
+    "favoriteRemove": "Remove {{name}} from my collection",
+    "inCollection": "In your collection",
+    "addToCollection": "Add to your collection"
+  },
+  "pack": {
+    "dragHint": "drag to open",
+    "brand": "POKÉ PACK",
+    "question": "Who is it?",
+    "open": "Open pack",
+    "openError": "We couldn't open the pack. Please try again."
+  },
+  "detail": {
+    "defaultTitle": "Pokémon",
+    "close": "Close",
+    "loadError": "We couldn't load this Pokémon. Please try again.",
+    "shinyAlt": "{{name}} (shiny)",
+    "playCry": "Play cry",
+    "shiny": "Shiny",
+    "navLabel": "Previous and next Pokémon",
+    "types": "Types",
+    "height": "Height",
+    "weight": "Weight",
+    "meters": "{{value}} m",
+    "kilograms": "{{value}} kg",
+    "abilities": "Abilities",
+    "hiddenAbility": "(hidden)"
+  },
+  "stats": {
+    "hp": "HP",
+    "attack": "Attack",
+    "defense": "Defense",
+    "special-attack": "Sp. Atk",
+    "special-defense": "Sp. Def",
+    "speed": "Speed"
+  }
+}

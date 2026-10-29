@@ -3,7 +3,8 @@ import { apiRequest } from '../api'
 
 const UNAUTHORIZED = 401
 
-// Every Pokémon with its types, loaded once; filtering then happens in the browser
+// Every Pokémon with its types, loaded once; filtering then happens in the browser.
+// The error is a translation key, so the view shows it in the current language.
 export function usePokedexIndex({ onUnauthorized }) {
   const [state, setState] = useState({ index: [], isLoading: true, error: '' })
   const onUnauthorizedRef = useRef(onUnauthorized)
@@ -19,7 +20,7 @@ export function usePokedexIndex({ onUnauthorized }) {
       })
       .catch((err) => {
         if (err.status === UNAUTHORIZED) return onUnauthorizedRef.current()
-        if (!isStale) setState({ index: [], isLoading: false, error: 'No pudimos cargar la Pokédex. Intenta de nuevo.' })
+        if (!isStale) setState({ index: [], isLoading: false, error: 'browser.indexError' })
       })
     return () => {
       isStale = true

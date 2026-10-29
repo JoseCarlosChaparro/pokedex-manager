@@ -1,6 +1,7 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
+import i18n from '../i18n'
 import FilterBar from './FilterBar'
 
 const NO_FILTERS = { q: '', types: [], gen: '', sort: 'id', density: 'comfy' }
@@ -44,5 +45,15 @@ describe('FilterBar', () => {
     for (const heading of ['Generación', 'Ordenar', 'Tamaño de las tarjetas', 'Filtrar por tipo']) {
       expect(within(card).getByRole('heading', { name: heading })).toBeInTheDocument()
     }
+  })
+
+  it('follows the language', async () => {
+    await i18n.changeLanguage('en')
+    render(<FilterBar filters={NO_FILTERS} resultCount={1025} onChange={vi.fn()} />)
+
+    expect(screen.getByRole('button', { name: 'Fire' })).toBeInTheDocument()
+    expect(screen.getByRole('option', { name: 'Name A–Z' })).toBeInTheDocument()
+    // The count is shown twice: visibly, and in the debounced live region for screen readers
+    expect(screen.getAllByText('1,025 Pokémon')[0]).toBeVisible()
   })
 })

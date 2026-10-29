@@ -1,11 +1,13 @@
 import { Heart } from 'lucide-react'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 const BURST_PARTICLES = 8
 
 // Toggle button: aria-pressed tells screen readers the state; the heart shape is not the only signal.
 // Adding plays a small heart burst (CSS, hidden under reduced motion).
 export default function FavoriteButton({ pokemon, isFavorite, onToggle, className = 'relative' }) {
+  const { t } = useTranslation()
   const [burstKey, setBurstKey] = useState(0)
   const name = pokemon.name.replaceAll('-', ' ')
 
@@ -19,8 +21,8 @@ export default function FavoriteButton({ pokemon, isFavorite, onToggle, classNam
     <button
       type="button"
       aria-pressed={isFavorite}
-      aria-label={isFavorite ? `Quitar a ${name} de mi colección` : `Agregar a ${name} a mi colección`}
-      title={isFavorite ? 'En tu colección' : 'Agregar a tu colección'}
+      aria-label={isFavorite ? t('browser.favoriteRemove', { name }) : t('browser.favoriteAdd', { name })}
+      title={isFavorite ? t('browser.inCollection') : t('browser.addToCollection')}
       onClick={handleClick}
       className={`favorite-button grid h-11 w-11 place-items-center rounded-full bg-white/90 shadow-sm transition-transform hover:scale-110 focus-visible:outline-2 focus-visible:outline-brand-600 dark:focus-visible:outline-brand-400 motion-reduce:transition-none motion-reduce:hover:scale-100 dark:bg-slate-900/80 ${className}`}
     >
