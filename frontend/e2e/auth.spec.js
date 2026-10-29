@@ -8,7 +8,7 @@ test('a new user registers, logs out and logs back in', async ({ page }) => {
   await page.getByLabel('Email').fill(email)
   await page.getByLabel('Contraseña').fill(PASSWORD)
   await page.getByRole('button', { name: 'Registrarme' }).click()
-  await expect(page.getByRole('heading', { name: /PokéDex/ })).toBeVisible()
+  await expect(page.getByRole('banner').getByRole('heading', { name: /PokéDex/ })).toBeVisible()
 
   await page.getByRole('button', { name: /Cerrar sesión|Salir/ }).click()
   await expect(page.getByRole('heading', { name: 'Iniciar sesión' })).toBeVisible()

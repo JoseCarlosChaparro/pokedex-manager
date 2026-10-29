@@ -326,6 +326,14 @@ body {
   border: 2px solid #111827;
 }
 
+/* Login hero mark: the favicon gradient with the Poké Ball seam */
+.pokeball--hero {
+  width: 2.75rem;
+  height: 2.75rem;
+  background: linear-gradient(#fff 0 0) center / 100% 3px no-repeat,
+    linear-gradient(135deg, var(--color-brand-400), var(--color-brand-600) 55%, var(--color-brand-950));
+}
+
 /* ── Gallery cards: gradient from the Pokémon's types ─────────────────────────────────────── */
 .pokemon-card {
   position: relative;
