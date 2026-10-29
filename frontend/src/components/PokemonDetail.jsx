@@ -1,3 +1,4 @@
+import { ChevronLeft, ChevronRight, Sparkles, Volume2, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { apiRequest } from '../api'
 import { DEFAULT_TYPE_COLOR, POKEMON_TYPE_COLORS, POKEMON_TYPE_LABELS, readableTextColor } from '../pokemonTypes'
@@ -110,9 +111,9 @@ export default function PokemonDetail({ pokemonId, onClose, onNavigate, onUnauth
             autoFocus
             onClick={onClose}
             aria-label="Cerrar"
-            className="grid h-11 w-11 place-items-center rounded-full bg-white/80 text-2xl leading-none shadow-sm dark:bg-slate-900/70"
+            className="grid h-11 w-11 place-items-center rounded-full bg-white/80 shadow-sm dark:bg-slate-900/70"
           >
-            ×
+            <X aria-hidden="true" className="size-5" />
           </button>
           <p className="rounded-full bg-white/85 px-3 py-1 font-mono text-sm font-semibold text-slate-800 shadow-sm dark:bg-slate-900/80 dark:text-slate-100">
             {Number.isInteger(id) ? `#${String(id).padStart(4, '0')}` : pokemonId}
@@ -166,7 +167,8 @@ export default function PokemonDetail({ pokemonId, onClose, onNavigate, onUnauth
                 <div className="mb-4 flex flex-wrap justify-center gap-2">
                   {pokemon.cry && (
                     <button type="button" onClick={playCry} className="min-h-11 rounded-full bg-white/80 px-4 text-sm font-medium shadow-sm dark:bg-slate-900/70">
-                      🔊 Escuchar grito
+                      <Volume2 aria-hidden="true" className="mr-1 inline size-4" />
+                      Escuchar grito
                     </button>
                   )}
                   {pokemon.images.shiny && (
@@ -176,7 +178,8 @@ export default function PokemonDetail({ pokemonId, onClose, onNavigate, onUnauth
                       onClick={() => setShowShiny((value) => !value)}
                       className="min-h-11 rounded-full bg-white/80 px-4 text-sm font-medium shadow-sm aria-pressed:bg-amber-200 dark:bg-slate-900/70 dark:aria-pressed:bg-amber-700"
                     >
-                      ✨ Variocolor
+                      <Sparkles aria-hidden="true" className="mr-1 inline size-4" />
+                      Variocolor
                     </button>
                   )}
                 </div>
@@ -227,7 +230,8 @@ export default function PokemonDetail({ pokemonId, onClose, onNavigate, onUnauth
                 onClick={() => onNavigate(id - 1)}
                 className="min-h-11 rounded-full bg-white/80 px-4 text-sm font-medium shadow-sm disabled:opacity-40 dark:bg-slate-900/70"
               >
-                ← #{String(id - 1).padStart(4, '0')}
+                <ChevronLeft aria-hidden="true" className="mr-1 inline size-4" />
+                #{String(id - 1).padStart(4, '0')}
               </button>
               <button
                 type="button"
@@ -235,7 +239,8 @@ export default function PokemonDetail({ pokemonId, onClose, onNavigate, onUnauth
                 onClick={() => onNavigate(id + 1)}
                 className="min-h-11 rounded-full bg-white/80 px-4 text-sm font-medium shadow-sm disabled:opacity-40 dark:bg-slate-900/70"
               >
-                #{String(id + 1).padStart(4, '0')} →
+                #{String(id + 1).padStart(4, '0')}
+                <ChevronRight aria-hidden="true" className="ml-1 inline size-4" />
               </button>
             </nav>
             )}

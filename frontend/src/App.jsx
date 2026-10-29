@@ -1,3 +1,4 @@
+import { LogOut } from 'lucide-react'
 import { useCallback, useState } from 'react'
 import AuthForm from './components/AuthForm'
 import PokemonBrowser from './components/PokemonBrowser'
@@ -34,7 +35,8 @@ export default function App() {
         </h1>
         <div className="flex items-center gap-1.5 sm:gap-2">
           <ThemeToggle theme={theme} onChange={setTheme} />
-        <button onClick={handleLogout} className="min-h-11 rounded-lg border border-white/80 px-2.5 text-sm hover:bg-white/10 sm:px-3">
+        <button onClick={handleLogout} className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-white/80 px-2.5 text-sm hover:bg-white/10 sm:px-3">
+          <LogOut aria-hidden="true" className="size-4" />
           <span className="sm:hidden">Salir</span>
           <span className="hidden sm:inline">Cerrar sesión</span>
         </button>

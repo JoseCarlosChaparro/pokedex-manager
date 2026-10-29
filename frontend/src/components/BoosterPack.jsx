@@ -1,3 +1,4 @@
+import { MoveHorizontal } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { DEFAULT_TYPE_COLOR, POKEMON_TYPE_COLORS } from '../pokemonTypes'
 import { spriteUrl } from '../sprites'
@@ -73,7 +74,10 @@ export default function BoosterPack({ pokemon, position, onOpen }) {
           onPointerCancel={handlePointerUp}
           aria-hidden="true"
         >
-          <span>⇠ arrastra para abrir ⇢</span>
+          <span className="inline-flex items-center gap-2">
+            <MoveHorizontal aria-hidden="true" className="size-4" />
+            arrastra para abrir
+          </span>
         </div>
         <div className="booster__body">
           <span className="booster__brand">POKÉ PACK</span>

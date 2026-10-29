@@ -1,3 +1,4 @@
+import { PackageOpen } from 'lucide-react'
 import { useEffect, useMemo, useRef } from 'react'
 import { flyToCollection } from '../flyToCollection'
 import { useFavorites } from '../hooks/useFavorites'
@@ -124,11 +125,16 @@ export default function PokemonBrowser({ onUnauthorized }) {
       )}
 
       {!isLoading && filtered.length === 0 && (
-        <p className="py-16 text-center text-lg text-slate-700 dark:text-slate-300">
-          {isFavoritesView && favorites.length === 0
-            ? 'Tu colección está vacía. Toca el corazón de un Pokémon y te llegará como sobre sellado. 🎴'
-            : 'Ningún Pokémon coincide con esos filtros.'}
-        </p>
+        <div className="flex flex-col items-center gap-3 py-16 text-center text-lg text-slate-700 dark:text-slate-300">
+          {isFavoritesView && favorites.length === 0 ? (
+            <>
+              <PackageOpen aria-hidden="true" className="size-12" />
+              <p>Tu colección está vacía. Toca el corazón de un Pokémon y te llegará como sobre sellado.</p>
+            </>
+          ) : (
+            <p>Ningún Pokémon coincide con esos filtros.</p>
+          )}
+        </div>
       )}
 
       <ul ref={gridRef} aria-busy={isLoading} className={`grid gap-3 sm:gap-4 ${GRID_COLUMNS[url.density]}`}>

@@ -1,10 +1,11 @@
+import { Check, Grid3x3, LayoutGrid, RotateCcw, Search, Square } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { GENERATIONS, SORTS } from '../pokedexFilter'
 import { POKEMON_TYPE_COLORS, POKEMON_TYPE_LABELS, readableTextColor } from '../pokemonTypes'
 import { DENSITIES } from '../urlState'
 
 const DENSITY_LABELS = { compact: 'Compacta', comfy: 'Normal', large: 'Grande' }
-const DENSITY_ICONS = { compact: '▦', comfy: '▤', large: '▢' }
+const DENSITY_ICONS = { compact: Grid3x3, comfy: LayoutGrid, large: Square }
 
 function isTypingTarget(element) {
   return element instanceof HTMLElement && (element.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(element.tagName))
@@ -56,6 +57,7 @@ export default function FilterBar({ filters, resultCount, onChange }) {
           <label htmlFor="pokemon-search" className="sr-only">
             Buscar Pokémon
           </label>
+          <Search aria-hidden="true" className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-slate-500 dark:text-slate-400" />
           <input
             ref={searchRef}
             id="pokemon-search"
@@ -64,7 +66,7 @@ export default function FilterBar({ filters, resultCount, onChange }) {
             onChange={(event) => onChange({ q: event.target.value }, { replace: true })}
             placeholder="Busca por nombre o número… (pika, #25)"
             autoComplete="off"
-            className={`${fieldClass} w-full pr-9 text-base`}
+            className={`${fieldClass} w-full pr-9 pl-9 text-base`}
           />
           <kbd aria-hidden="true" className="pointer-events-none absolute top-1/2 right-3 hidden -translate-y-1/2 rounded border border-slate-300 px-1.5 text-xs text-slate-500 sm:block dark:border-slate-600 dark:text-slate-400">
             /
@@ -87,19 +89,22 @@ export default function FilterBar({ filters, resultCount, onChange }) {
             ))}
           </select>
           <div role="group" aria-label="Tamaño de las tarjetas" className="col-span-2 flex rounded-xl bg-white/60 p-1 ring-1 ring-slate-300/70 backdrop-blur dark:bg-slate-800/60 dark:ring-slate-600">
-            {DENSITIES.map((density) => (
-              <button
-                key={density}
-                type="button"
-                aria-pressed={filters.density === density}
-                aria-label={`Tarjetas: ${DENSITY_LABELS[density]}`}
-                title={DENSITY_LABELS[density]}
-                onClick={() => onChange({ density })}
-                className="grid min-h-9 flex-1 place-items-center rounded-lg px-3 text-lg aria-pressed:bg-red-600 aria-pressed:text-white"
-              >
-                <span aria-hidden="true">{DENSITY_ICONS[density]}</span>
-              </button>
-            ))}
+            {DENSITIES.map((density) => {
+              const DensityIcon = DENSITY_ICONS[density]
+              return (
+                <button
+                  key={density}
+                  type="button"
+                  aria-pressed={filters.density === density}
+                  aria-label={`Tarjetas: ${DENSITY_LABELS[density]}`}
+                  title={DENSITY_LABELS[density]}
+                  onClick={() => onChange({ density })}
+                  className="grid min-h-9 flex-1 place-items-center rounded-lg px-3 aria-pressed:bg-red-600 aria-pressed:text-white"
+                >
+                  <DensityIcon className="size-5" />
+                </button>
+              )
+            })}
           </div>
         </div>
       </div>
@@ -117,7 +122,7 @@ export default function FilterBar({ filters, resultCount, onChange }) {
               style={isSelected ? { backgroundColor: color, color: readableTextColor(color), borderColor: color } : { borderColor: color }}
               className="type-chip min-h-9 rounded-full border-2 bg-white/70 px-3 text-sm font-semibold backdrop-blur transition-transform hover:-translate-y-0.5 motion-reduce:transition-none motion-reduce:hover:translate-y-0 dark:bg-slate-800/70"
             >
-              {isSelected && <span aria-hidden="true">✓ </span>}
+              {isSelected && <Check aria-hidden="true" className="mr-1 inline size-4" />}
               {label}
             </button>
           )
@@ -131,6 +136,7 @@ export default function FilterBar({ filters, resultCount, onChange }) {
         </p>
         {hasFilters && (
           <button type="button" onClick={() => onChange({ q: '', types: [], gen: '' })} className="min-h-9 rounded-lg px-2 underline">
+            <RotateCcw aria-hidden="true" className="mr-1 inline size-4" />
             Limpiar filtros
           </button>
         )}
