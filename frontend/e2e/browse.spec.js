@@ -28,7 +28,7 @@ test.describe('browsing', () => {
     await page.getByLabel('Buscar Pokémon').fill('pika')
 
     await expect(page.getByRole('button', { name: /^#0025 pikachu\b/ })).toBeVisible()
-    await expect(page.getByText(/^\d+ Pokémon$/)).toBeVisible()
+    await expect(page.getByText(/^\d+ Pokémon$/).first()).toBeVisible()
     await expect(page).toHaveURL(/q=pika/)
 
     await page.getByLabel('Buscar Pokémon').fill('#6')
@@ -68,6 +68,28 @@ test.describe('browsing', () => {
     await expect(dialog).toBeHidden()
     await expect(page).not.toHaveURL(/pokemon=/)
     await expect(page.getByRole('button', { name: /^#0005 charmeleon\b/ })).toBeFocused()
+  })
+
+  test('closing the detail does not leave it in the history', async ({ page }) => {
+    await page.getByRole('button', { name: 'Página 2' }).click()
+    await page.getByRole('button', { name: /^#0025 pikachu\b/ }).click()
+    await page.getByRole('button', { name: 'Cerrar', exact: true }).click()
+    await expect(page.getByRole('dialog')).toBeHidden()
+
+    await page.goBack()
+
+    await expect(page.getByRole('dialog')).toBeHidden()
+    await expect(page).not.toHaveURL(/page=2/)
+  })
+
+  test('the detail traps keyboard focus', async ({ page }) => {
+    await page.getByRole('button', { name: /^#0001 bulbasaur\b/ }).click()
+    const dialog = page.getByRole('dialog')
+    await expect(dialog.getByRole('heading', { name: 'bulbasaur' })).toBeVisible()
+
+    for (let i = 0; i < 15; i += 1) await page.keyboard.press('Tab')
+
+    await expect(dialog.locator(':focus')).toHaveCount(1)
   })
 
   test('Back closes the detail', async ({ page }) => {

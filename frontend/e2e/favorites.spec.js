@@ -11,8 +11,8 @@ test.describe('my collection', () => {
     await page.getByRole('button', { name: 'Agregar a bulbasaur a mi colección' }).click()
     await page.getByRole('button', { name: 'Mi colección (1)' }).click()
 
-    await expect(page.getByRole('button', { name: 'Abrir sobre de bulbasaur' })).toBeVisible()
-    await page.getByRole('button', { name: 'Abrir sobre de bulbasaur' }).click()
+    await expect(page.getByRole('button', { name: 'Abrir sobre 1' })).toBeVisible()
+    await page.getByRole('button', { name: 'Abrir sobre 1' }).click()
     await expect(page.getByRole('button', { name: /^#0001 bulbasaur\b/ })).toBeVisible()
 
     // Opening is remembered
