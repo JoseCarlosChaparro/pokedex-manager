@@ -99,7 +99,7 @@ export default function FilterBar({ filters, resultCount, onChange }) {
                   aria-label={`Tarjetas: ${DENSITY_LABELS[density]}`}
                   title={DENSITY_LABELS[density]}
                   onClick={() => onChange({ density })}
-                  className="grid min-h-9 flex-1 place-items-center rounded-lg px-3 aria-pressed:bg-red-600 aria-pressed:text-white"
+                  className="grid min-h-9 flex-1 place-items-center rounded-lg px-3 aria-pressed:bg-brand-600 aria-pressed:text-white dark:aria-pressed:bg-brand-400 dark:aria-pressed:text-slate-950"
                 >
                   <DensityIcon className="size-5" />
                 </button>

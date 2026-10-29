@@ -67,7 +67,7 @@ export default function AuthForm({ onAuthenticated, themeToggle }) {
           />
         </label>
         {error && <p role="alert" className="text-sm text-red-700 dark:text-red-300">{error}</p>}
-        <button disabled={loading} className="min-h-11 w-full rounded-lg bg-red-600 py-2 font-semibold text-white hover:bg-red-700 disabled:opacity-50">
+        <button disabled={loading} className="min-h-11 w-full rounded-lg bg-brand-600 py-2 font-semibold text-white hover:bg-brand-700 disabled:opacity-50">
           {loading ? 'Cargando…' : isRegister ? 'Registrarme' : 'Entrar'}
         </button>
         <button type="button" onClick={toggleMode} className="min-h-11 w-full text-sm text-slate-600 underline dark:text-slate-300">

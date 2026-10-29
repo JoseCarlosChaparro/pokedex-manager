@@ -3,6 +3,16 @@
 /* Dark mode follows the .dark class on <html> (set by the theme toggle), not only the OS setting */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Brand: crimson accents on a slate neutral base (neutrals use Tailwind's slate) */
+@theme {
+  --color-brand-400: #fb7185;
+  --color-brand-500: #f43f5e;
+  --color-brand-600: #be123c;
+  --color-brand-700: #9f1239;
+  --color-brand-800: #881337;
+  --color-brand-950: #4c0519;
+}
+
 /* Pointer cursor on every clickable element; not-allowed when it cannot be used */
 @layer base {
   button:not(:disabled),
@@ -299,7 +309,7 @@ body {
   height: 1.5rem;
   border-radius: 50%;
   border: 2px solid #111827;
-  background: linear-gradient(#fff 0 0) center / 100% 2px no-repeat, linear-gradient(#ef4444 50%, #fff 50%);
+  background: linear-gradient(#fff 0 0) center / 100% 2px no-repeat, linear-gradient(var(--color-brand-500) 50%, #fff 50%);
   box-shadow: inset 0 0 0 4px transparent;
   position: relative;
 }
@@ -333,7 +343,7 @@ body {
 }
 
 .pokemon-card:focus-visible {
-  outline: 3px solid #dc2626;
+  outline: 3px solid var(--color-brand-600);
   outline-offset: 3px;
 }
 
@@ -434,7 +444,7 @@ body {
   height: 0.5rem;
   margin: -0.25rem;
   border-radius: 50%;
-  background: #ef4444;
+  background: var(--color-brand-500);
   opacity: 0;
 }
 

@@ -28,7 +28,7 @@ export default function App() {
 
   return (
     <div className="isolate min-h-screen text-slate-900 dark:text-slate-100">
-      <header className="sticky top-0 z-20 flex items-center justify-between gap-1.5 bg-red-600/90 px-3 py-2 text-white shadow-md backdrop-blur sm:gap-2 sm:px-6">
+      <header className="sticky top-0 z-20 flex items-center justify-between gap-1.5 border-b-2 border-brand-600 bg-slate-900/90 px-3 py-2 text-white shadow-md backdrop-blur sm:gap-2 sm:px-6">
         <h1 className="flex items-center gap-2 text-xl font-black tracking-tight">
           <span aria-hidden="true" className="pokeball" />
           PokéDex<span className="hidden sm:inline"> Manager</span>

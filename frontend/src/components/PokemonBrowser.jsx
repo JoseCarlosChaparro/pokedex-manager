@@ -103,7 +103,7 @@ export default function PokemonBrowser({ onUnauthorized }) {
             aria-pressed={url.view === view}
             data-collection-target={view === VIEWS.favorites ? '' : undefined}
             onClick={() => changeFilters({ view })}
-            className="relative min-h-11 rounded-xl px-4 text-sm font-semibold whitespace-nowrap aria-pressed:bg-red-600 aria-pressed:text-white aria-pressed:shadow"
+            className="relative min-h-11 rounded-xl px-4 text-sm font-semibold whitespace-nowrap aria-pressed:bg-brand-600 aria-pressed:text-white dark:aria-pressed:bg-brand-400 dark:aria-pressed:text-slate-950 aria-pressed:shadow"
           >
             {label}
             {view === VIEWS.favorites && sealedCount > 0 && (
