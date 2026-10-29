@@ -16,14 +16,16 @@ export default function PokemonCardFace({ pokemon, density }) {
         {String(pokemon.id).padStart(isCompact ? 1 : 3, '0')}
       </span>
       <span aria-hidden="true" className="pokemon-card__glow" />
-      <img
-        src={isLarge ? artworkUrl(pokemon.id) : spriteUrl(pokemon.id)}
-        alt=""
-        loading="lazy"
-        width={isLarge ? 200 : 96}
-        height={isLarge ? 200 : 96}
-        className={`pokemon-card__sprite relative mx-auto ${isLarge ? 'h-44 w-44' : isCompact ? 'h-16 w-16 [image-rendering:pixelated]' : 'h-24 w-24 [image-rendering:pixelated]'}`}
-      />
+      <span className={`sprite-stage mx-auto block ${isLarge ? 'h-44 w-44' : isCompact ? 'h-16 w-16' : 'h-24 w-24'}`}>
+        <img
+          src={isLarge ? artworkUrl(pokemon.id) : spriteUrl(pokemon.id)}
+          alt=""
+          loading="lazy"
+          width={isLarge ? 200 : 96}
+          height={isLarge ? 200 : 96}
+          className={`pokemon-card__sprite block h-full w-full ${isLarge ? '' : '[image-rendering:pixelated]'}`}
+        />
+      </span>
       <span className="relative block text-xs font-semibold text-slate-700 dark:text-slate-200">
         #{String(pokemon.id).padStart(4, '0')}
       </span>

@@ -120,15 +120,17 @@ export default function PokemonDetail({ pokemonId, onClose, onNavigate, onUnauth
         <div className="detail-flip-in">
         <HoloCard color={typeColor}>
           <HoloArt>
-          <img
-            src={art}
-            alt={pokemon ? imageAlt : ''}
-            onError={(event) => {
-              event.currentTarget.onerror = null
-              event.currentTarget.src = spriteUrl(id)
-            }}
-            className={`relative mx-auto aspect-square w-48 drop-shadow-xl transition-opacity sm:w-60 ${isLoading ? 'opacity-60' : ''}`}
-          />
+          <span className="sprite-stage mx-auto block w-48 sm:w-60">
+            <img
+              src={art}
+              alt={pokemon ? imageAlt : ''}
+              onError={(event) => {
+                event.currentTarget.onerror = null
+                event.currentTarget.src = spriteUrl(id)
+              }}
+              className={`relative block aspect-square w-full drop-shadow-xl transition-opacity ${isLoading ? 'opacity-60' : ''}`}
+            />
+          </span>
           </HoloArt>
 
           <div className="relative z-10">

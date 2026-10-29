@@ -1,5 +1,6 @@
 import { createPortal } from 'react-dom'
 import { typeColor } from '../pokemonTypes'
+import { cardPadding } from '../cardPadding'
 import PokemonCardFace from './PokemonCardFace'
 
 // Full-screen layer for the opening. It sits in <body> so it stacks above the gallery. It is empty (and hidden)
@@ -11,7 +12,7 @@ export default function PackStage({ stageRef, cardRef, pokemon, density, isOpeni
       {isOpening && (
         <div
           ref={cardRef}
-          className="pokemon-card holo-reveal-card"
+          className={`pokemon-card holo-reveal-card ${cardPadding(density)}`}
           style={{ '--c1': typeColor(primary), '--c2': typeColor(secondary) }}
         >
           <PokemonCardFace pokemon={pokemon} density={density} />

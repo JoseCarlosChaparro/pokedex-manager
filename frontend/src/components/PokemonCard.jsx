@@ -1,5 +1,6 @@
 import { typeColor } from '../pokemonTypes'
 import FavoriteButton from './FavoriteButton'
+import { cardPadding } from '../cardPadding'
 import PokemonCardFace from './PokemonCardFace'
 
 const STAGGER_MS = 25
@@ -7,7 +8,6 @@ const MAX_STAGGERED = 24
 
 export default function PokemonCard({ pokemon, index, density, isFavorite, onOpen, onToggleFavorite }) {
   const [primary, secondary = primary] = pokemon.types ?? []
-  const isCompact = density === 'compact'
 
   return (
     <li
@@ -23,7 +23,7 @@ export default function PokemonCard({ pokemon, index, density, isFavorite, onOpe
       <button
         type="button"
         onClick={(event) => onOpen(pokemon, event.currentTarget.querySelector('img'))}
-        className={`pokemon-card group w-full text-left ${isCompact ? 'p-2' : 'p-3'}`}
+        className={`pokemon-card group w-full text-left ${cardPadding(density)}`}
       >
         <PokemonCardFace pokemon={pokemon} density={density} />
       </button>

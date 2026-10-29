@@ -369,6 +369,43 @@ body {
   color: rgb(255 255 255 / 0.07);
 }
 
+/* Sprite on a glossy floor: a blurred shadow at its feet and a faint reflection below it.
+   The wrapper keeps the size of the sprite, so the reflection never changes the layout. */
+.sprite-stage {
+  position: relative;
+  isolation: isolate;
+}
+
+.sprite-stage::before {
+  content: "";
+  position: absolute;
+  left: 20%;
+  bottom: 0;
+  z-index: -1;
+  width: 60%;
+  height: 12%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(0 0 0 / 0.9), transparent);
+  filter: blur(6px);
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.dark .sprite-stage::before {
+  opacity: 0.6;
+}
+
+.sprite-stage img {
+  -webkit-box-reflect: below 2px linear-gradient(transparent 70%, rgb(0 0 0 / 0.18));
+}
+
+/* Browsers without -webkit-box-reflect keep the shadow only */
+@supports not (-webkit-box-reflect: below) {
+  .sprite-stage img {
+    -webkit-box-reflect: none;
+  }
+}
+
 /* Soft colored halo behind the sprite */
 .pokemon-card__glow {
   position: absolute;
