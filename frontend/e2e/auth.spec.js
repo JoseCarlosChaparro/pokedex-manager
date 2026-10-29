@@ -1,4 +1,4 @@
-import { PASSWORD, expect, test, uniqueEmail } from './fixtures'
+import { PASSWORD, expect, openFilters, test, uniqueEmail } from './fixtures'
 
 test('a new user registers, logs out and logs back in', async ({ page }) => {
   const email = uniqueEmail('register')
@@ -16,6 +16,7 @@ test('a new user registers, logs out and logs back in', async ({ page }) => {
   await page.getByLabel('Email').fill(email)
   await page.getByLabel('Contraseña').fill(PASSWORD)
   await page.getByRole('button', { name: 'Entrar' }).click()
+  await openFilters(page)
   await expect(page.getByLabel('Buscar Pokémon')).toBeVisible()
 })
 

@@ -1,4 +1,4 @@
-import { expect, pokemonCards, test } from './fixtures'
+import { expect, openFilters, pokemonCards, test } from './fixtures'
 
 const PAGE_SIZE = 24
 
@@ -7,6 +7,7 @@ test.describe('browsing', () => {
     expect(user.token).toBeTruthy()
     await page.goto('/')
     await expect(pokemonCards(page)).toHaveCount(PAGE_SIZE)
+    await openFilters(page)
   })
 
   test('paginates by number, jumps to the last page and keeps the page in the URL', async ({ page }) => {

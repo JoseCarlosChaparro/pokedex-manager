@@ -21,6 +21,11 @@ export const SORTS = {
 
 export const generationOf = (id) => GENERATIONS.find((gen) => id >= gen.min && id <= gen.max)
 
+// Sort and density only reorder or restyle the list, so they never count as filters
+export function activeFilterCount({ q, types, gen }) {
+  return (q.trim() ? 1 : 0) + types.length + (gen ? 1 : 0)
+}
+
 // "Píkachu Rock" -> "pikachu-rock": PokéAPI names are lowercase, unaccented and hyphenated
 function normalize(text) {
   return text.normalize('NFD').replace(/[̀-ͯ]/g, '').trim().toLowerCase().replace(/\s+/g, '-')

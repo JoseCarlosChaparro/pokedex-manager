@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { filterPokedex, generationOf, paginate } from './pokedexFilter'
+import { activeFilterCount, filterPokedex, generationOf, paginate } from './pokedexFilter'
 
 const INDEX = [
   { id: 1, name: 'bulbasaur', types: ['grass', 'poison'] },
@@ -65,5 +65,19 @@ describe('paginate', () => {
     expect(paginate(items, 2, 24)).toEqual({ page: 2, totalPages: 3, items: items.slice(24, 48) })
     expect(paginate(items, 99, 24).page).toBe(3)
     expect(paginate([], 1, 24)).toEqual({ page: 1, totalPages: 1, items: [] })
+  })
+})
+
+describe('activeFilterCount', () => {
+  it('counts nothing when no filter is set', () => {
+    expect(activeFilterCount({ q: '', types: [], gen: '' })).toBe(0)
+  })
+
+  it('counts the search, each type and the generation', () => {
+    expect(activeFilterCount({ q: ' pika ', types: ['fire', 'water'], gen: '1' })).toBe(4)
+  })
+
+  it('ignores a search that is only whitespace', () => {
+    expect(activeFilterCount({ q: '   ', types: [], gen: '' })).toBe(0)
   })
 })
