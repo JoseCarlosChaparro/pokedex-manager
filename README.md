@@ -4,10 +4,10 @@ A web app to explore Pokémon using [PokéAPI](https://pokeapi.co/): user regist
 a paginated list, search by name or number, a type filter and a detail view.
 
 - **Backend:** Python 3.12 · FastAPI · MongoDB · JWT
-- **Frontend:** React · Vite · Tailwind CSS
+- **Frontend:** React · Vite · Tailwind CSS · react-i18next · GSAP · Lucide icons
 - **Live demo:** https://pokedex.josechaparro.com — log in with any [test user](#test-users).
 - **v1** (the delivered exercise) is tag [`v1.0.0`](../../tree/v1.0.0). **v2** (this branch) adds favorites,
-  instant filters, booster packs, caching, rate limiting, tests and CI, and a holographic detail card — see [What's new in v2](#whats-new-in-v2).
+  instant filters, booster packs, caching, rate limiting, tests and CI, a holographic detail card, Spanish and English UI and a visual polish round — see [What's new in v2](#whats-new-in-v2).
 
 ---
 
@@ -16,19 +16,22 @@ a paginated list, search by name or number, a type filter and a detail view.
 - Register, log in and log out (the token is revoked on the server).
 - Session kept across page reloads; an expired or invalid token sends the user back to the login.
 - Form validation in the browser (HTML5) and on the server (Pydantic).
+- Spanish (default) or English interface; the choice is remembered and `<html lang>` follows it.
 - **Instant filters:** live search by partial name or number (`/` focuses it), multi-select type chips,
-  generation (I–IX and alternate forms), sort order and three card sizes — all in the URL.
+  generation (I–IX and alternate forms), sort order and three card sizes — all in the URL, grouped in one
+  collapsible "Filtros" card that shows the active-filter count.
 - Gallery cards colored by type, with hover effects; layout changes animate with GSAP Flip.
-- Numbered paginator (24 per page) with first/last and "go to page".
+- Paginator (24 per page) with first, previous, next and last buttons and one editable page field.
 - **My collection:** favorites per user (MongoDB). A new favorite arrives as a **sealed booster pack**:
   drag its strip to tear it open (or use the button), and the opened state is saved.
 - **Holographic detail card:** gold-framed artwork with rainbow foil, glitter and glare that follow the pointer
   (or the phone's gyroscope), stat bars, cry, shiny toggle, previous/next with buttons or arrow keys.
 - Shareable URLs: page, filters and the open Pokémon live in the address bar; Back closes the detail.
 - The detail is a native modal `<dialog>` (focus trapped, page inert) that flips in like a card being turned over.
-- Light, dark or system theme; animated aurora background tinted by the selected types; responsive from 320 px phones to 2560 px screens; WCAG 2.2 AA (checked with axe);
-  every animation is static under `prefers-reduced-motion`.
+- Light, dark or system theme with a crimson and slate palette; animated aurora background tinted by the selected types; responsive from 320 px phones to 2560 px screens; WCAG 2.2 AA (checked with axe);
+  animations become fades or stay static under `prefers-reduced-motion`.
 - Friendly error messages (not found, PokéAPI down or slow, invalid credentials, too many login attempts).
+- Login hero and a footer with credits (author, PokéAPI, Nintendo/Game Freak disclaimer, GitHub, version).
 
 ---
 
@@ -43,8 +46,28 @@ test-first implementation, an independent review pass and small Conventional Com
 | Performance | In-memory TTL cache (1 h) for PokéAPI; the detail response shrinks from ~300 KB to ~2 KB. |
 | Features | Favorites as booster packs, Pokédex index for instant filters, partial-name autocomplete endpoint, trimmed detail model (artwork, shiny, cry, units converted). |
 | Security | Failed-login rate limit (5 per email / 20 per IP per minute → 429), constant-time rejection of unknown emails, real client IP through nginx. |
-| Quality | 62 backend tests (pytest), 53 frontend unit tests (Vitest), 34 e2e + accessibility tests (Playwright + axe), GitHub Actions CI. |
-| Motion | GSAP Flip grid, booster packs, holo card, aurora background — techniques inspired by a private animation library and re-implemented from scratch; all static under reduced motion. |
+| Quality | 62 backend tests (pytest), 144 frontend unit tests (Vitest), e2e and accessibility suite (Playwright on desktop and Pixel 7, axe checks), GitHub Actions CI. |
+| Motion | GSAP Flip grid, booster packs, holo card, aurora background — techniques inspired by a private animation library and re-implemented from scratch; fades or static under reduced motion. |
+
+### Polish round
+
+- **Icons and cursors:** Lucide icons everywhere; pointer cursor on every clickable element.
+- **Paginator:** one editable page field between first, previous, next and last buttons.
+- **Palette:** crimson and slate as Tailwind v4 `@theme` tokens (`brand-400` to `brand-950`); new favicon and theme color.
+- **Filters:** grouped in one collapsible "Filtros" card with an active-filter count.
+- **Languages:** react-i18next with Spanish (default) and English; the switch is saved as `pokedex_lang` and
+  `<html lang>` follows it. A unit test checks that both locales have the same keys.
+- **Navigation:** sticky view tabs with a sliding indicator; the grid transitions in the direction of the tab;
+  illustrated empty states.
+- **Collection:** favoriting throws a Poké Ball into "Mi colección".
+- **Booster packs:** hover glow, foil and tilt; the pack tears toward the side you drag. Opening runs center-stage
+  (flash, particles, vibration, holo card reveal) and the card settles into its slot. Reduced motion uses fades.
+- **Pokémon images:** glossy shadow and reflection underneath.
+- **Login and footer:** login hero and a credits footer with the version.
+- **Code splitting:** the login page no longer downloads GSAP or the browser code (login JS 143.6 → 96.3 kB gzip);
+  failed chunk loads show an error with retry; the detail is preloaded when a card is hovered or focused.
+- **Visual audit:** `node frontend/scripts/visual-audit.mjs [--widths=300,768,1280,2560] [--themes=light,dark] [--screens=…]`
+  screenshots the app (the dev stack must be running); output goes to the git-ignored `frontend/visual-audit/`.
 
 ---
 
@@ -199,8 +222,12 @@ Created by the seed script (safe to run more than once):
         ├── urlState.js              # Navigation state <-> query string
         ├── pokedexFilter.js         # Instant filtering, sorting and pagination over the Pokédex index
         ├── flyToCollection.js       # Sprite flies into "Mi colección" when added
-        ├── hooks/                   # useUrlState, useFavorites, usePokedexIndex, useFlipGrid, useTheme
-        └── components/              # PokemonBrowser, FilterBar, Paginator, PokemonCard, BoosterPack, PokemonDetail, HoloCard…
+        ├── viewTransition.js        # Direction of the grid slide between view tabs
+        ├── packOpening.js           # Center-stage booster pack opening sequence
+        ├── lazyComponents.js        # Code-split chunks: browser and detail dialog
+        ├── i18n/                    # react-i18next setup and locales (es, en)
+        ├── hooks/                   # useUrlState, useFavorites, usePokedexIndex, useFlipGrid, useTheme, useTilt
+        └── components/              # PokemonBrowser, FilterBar, Paginator, PokemonCard, PokemonCardFace, BoosterPack, PackStage, PokemonDetail, HoloCard, ViewTabs, EmptyState, AppFooter, BrandTitle, LanguageToggle, ChunkErrorBoundary…
     └── e2e/                         # Playwright flows + axe accessibility checks
 ```
 
