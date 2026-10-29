@@ -1,4 +1,3 @@
-import { PackageOpen } from 'lucide-react'
 import { useEffect, useMemo, useRef } from 'react'
 import { flushSync } from 'react-dom'
 import { useTranslation } from 'react-i18next'
@@ -14,6 +13,7 @@ import { VIEWS } from '../urlState'
 import { playViewTransition, viewDirection } from '../viewTransition'
 import AuroraBackground from './AuroraBackground'
 import BoosterPack from './BoosterPack'
+import EmptyState from './EmptyState'
 import FilterBar from './FilterBar'
 import Paginator from './Paginator'
 import PokemonCard, { PokemonCardSkeleton } from './PokemonCard'
@@ -21,6 +21,7 @@ import PokemonDetail from './PokemonDetail'
 import ViewTabs from './ViewTabs'
 
 const PAGE_SIZE = 24
+const CLEARED_FILTERS = { q: '', types: [], gen: '' }
 
 const GRID_COLUMNS = {
   compact: 'grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 2xl:grid-cols-12',
@@ -102,6 +103,9 @@ export default function PokemonBrowser({ onUnauthorized, playTransition = playVi
 
   const auroraColors = url.types.map((type) => POKEMON_TYPE_COLORS[type])
   const sealedCount = favorites.filter((favorite) => !favorite.opened).length
+  const isCollectionEmpty = isFavoritesView && favorites.length === 0
+  const emptyVariant = isCollectionEmpty ? 'collection' : 'noResults'
+  const emptyAction = isCollectionEmpty ? () => changeView(VIEWS.all) : () => changeFilters(CLEARED_FILTERS)
   const error = indexError || favoritesError
 
   return (
@@ -125,16 +129,7 @@ export default function PokemonBrowser({ onUnauthorized, playTransition = playVi
       )}
 
       {!isLoading && filtered.length === 0 && (
-        <div className="flex flex-col items-center gap-3 py-16 text-center text-lg text-slate-700 dark:text-slate-300">
-          {isFavoritesView && favorites.length === 0 ? (
-            <>
-              <PackageOpen aria-hidden="true" className="size-12" />
-              <p>{t('browser.emptyCollection')}</p>
-            </>
-          ) : (
-            <p>{t('browser.noResults')}</p>
-          )}
-        </div>
+        <EmptyState variant={emptyVariant} onAction={emptyAction} />
       )}
 
       <ul ref={gridRef} aria-busy={isLoading} className={`grid gap-3 sm:gap-4 ${GRID_COLUMNS[url.density]}`}>

@@ -336,6 +336,23 @@ body {
     linear-gradient(135deg, var(--color-brand-400), var(--color-brand-600) 55%, var(--color-brand-950));
 }
 
+/* ── Empty states: soft aura and a slow float on the outlined Poké Ball ──────────────────── */
+.empty-state__aura {
+  background: radial-gradient(closest-side, rgb(251 113 133 / 0.35), transparent);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .empty-state__ball {
+    animation: empty-state-float 6s ease-in-out infinite;
+  }
+}
+
+@keyframes empty-state-float {
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
 /* ── Gallery cards: gradient from the Pokémon's types ─────────────────────────────────────── */
 .pokemon-card {
   position: relative;

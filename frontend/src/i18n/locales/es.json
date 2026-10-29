@@ -113,8 +113,6 @@
     "collectionSubtitle": "{{number}} en tu colección",
     "sealedPacks_one": "1 sobre sin abrir",
     "sealedPacks_other": "{{count}} sobres sin abrir",
-    "emptyCollection": "Tu colección está vacía. Toca el corazón de un Pokémon y te llegará como sobre sellado.",
-    "noResults": "Ningún Pokémon coincide con esos filtros.",
     "indexError": "No pudimos cargar la Pokédex. Intenta de nuevo.",
     "collectionLoadError": "No pudimos cargar tu colección.",
     "collectionUpdateError": "No pudimos actualizar tu colección. Intenta de nuevo.",
@@ -122,6 +120,14 @@
     "favoriteRemove": "Quitar a {{name}} de mi colección",
     "inCollection": "En tu colección",
     "addToCollection": "Agregar a tu colección"
+  },
+  "emptyState": {
+    "collectionTitle": "Tu colección está vacía",
+    "collectionHint": "Toca el corazón de un Pokémon y te llegará como sobre sellado.",
+    "collectionAction": "Explorar la Pokédex",
+    "noResultsTitle": "Sin coincidencias",
+    "noResultsHint": "Ningún Pokémon coincide con esos filtros.",
+    "noResultsAction": "Limpiar filtros"
   },
   "pack": {
     "dragHint": "arrastra para abrir",

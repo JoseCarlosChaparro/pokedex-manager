@@ -113,8 +113,6 @@
     "collectionSubtitle": "{{number}} in your collection",
     "sealedPacks_one": "1 unopened pack",
     "sealedPacks_other": "{{count}} unopened packs",
-    "emptyCollection": "Your collection is empty. Tap the heart on a Pokémon and it will arrive as a sealed pack.",
-    "noResults": "No Pokémon match these filters.",
     "indexError": "We couldn't load the Pokédex. Please try again.",
     "collectionLoadError": "We couldn't load your collection.",
     "collectionUpdateError": "We couldn't update your collection. Please try again.",
@@ -122,6 +120,14 @@
     "favoriteRemove": "Remove {{name}} from my collection",
     "inCollection": "In your collection",
     "addToCollection": "Add to your collection"
+  },
+  "emptyState": {
+    "collectionTitle": "Your collection is empty",
+    "collectionHint": "Tap the heart on a Pokémon and it will arrive as a sealed pack.",
+    "collectionAction": "Explore the Pokédex",
+    "noResultsTitle": "No matches",
+    "noResultsHint": "No Pokémon match these filters.",
+    "noResultsAction": "Clear filters"
   },
   "pack": {
     "dragHint": "drag to open",
