@@ -15,6 +15,7 @@ import FilterBar from './FilterBar'
 import Paginator from './Paginator'
 import PokemonCard, { PokemonCardSkeleton } from './PokemonCard'
 import PokemonDetail from './PokemonDetail'
+import ViewTabs from './ViewTabs'
 
 const PAGE_SIZE = 24
 
@@ -94,29 +95,13 @@ export default function PokemonBrowser({ onUnauthorized }) {
     <section className="mx-auto max-w-[1920px] px-4 py-6 sm:px-6 2xl:px-10">
       <AuroraBackground colors={auroraColors} />
 
-      <div role="group" aria-label={t('browser.view')} className="mb-4 inline-flex rounded-2xl bg-white/60 p-1 ring-1 ring-slate-300/70 backdrop-blur dark:bg-slate-800/60 dark:ring-slate-600">
-        {[
-          [VIEWS.all, t('browser.viewAll')],
-          [VIEWS.favorites, t('browser.viewFavorites', { count: favorites.length })],
-        ].map(([view, label]) => (
-          <button
-            key={view}
-            type="button"
-            aria-pressed={url.view === view}
-            data-collection-target={view === VIEWS.favorites ? '' : undefined}
-            onClick={() => changeFilters({ view })}
-            className="relative min-h-11 rounded-xl px-4 text-sm font-semibold whitespace-nowrap aria-pressed:bg-brand-600 aria-pressed:text-white dark:aria-pressed:bg-brand-400 dark:aria-pressed:text-slate-950 aria-pressed:shadow"
-          >
-            {label}
-            {view === VIEWS.favorites && sealedCount > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 grid h-5 min-w-5 place-items-center rounded-full bg-amber-400 px-1 text-xs font-bold text-slate-900">
-                {sealedCount}
-                <span className="sr-only"> {t('browser.sealedPacks')}</span>
-              </span>
-            )}
-          </button>
-        ))}
-      </div>
+      <ViewTabs
+        view={url.view}
+        totalCount={index.length}
+        favoritesCount={favorites.length}
+        sealedCount={sealedCount}
+        onChange={(view) => changeFilters({ view })}
+      />
 
       <FilterBar filters={url} resultCount={filtered.length} onChange={changeFilters} />
 

@@ -32,6 +32,8 @@
 
 :root {
   color-scheme: light;
+  /* Fixed header height: the sticky view tabs stack right below it */
+  --header-height: 3.875rem;
 }
 
 :root.dark {
