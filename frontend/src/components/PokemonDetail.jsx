@@ -3,9 +3,6 @@ import { apiRequest } from '../api'
 import { POKEMON_TYPE_LABELS } from '../pokemonTypes'
 
 const STAT_LABELS = { hp: 'HP', attack: 'Ataque', defense: 'Defensa' }
-// PokéAPI returns height in decimeters and weight in hectograms
-const DECIMETERS_PER_METER = 10
-const HECTOGRAMS_PER_KILOGRAM = 10
 
 export default function PokemonDetail({ pokemonId, onClose, onUnauthorized }) {
   const [pokemon, setPokemon] = useState(null)
@@ -34,7 +31,7 @@ export default function PokemonDetail({ pokemonId, onClose, onUnauthorized }) {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [onClose])
 
-  const baseStats = pokemon?.stats.filter(({ stat }) => stat.name in STAT_LABELS) ?? []
+  const baseStats = pokemon?.stats.filter(({ name }) => name in STAT_LABELS) ?? []
 
   return (
     <div className="fixed inset-0 z-10 grid place-items-center bg-black/50 p-4" onClick={onClose}>
@@ -52,35 +49,35 @@ export default function PokemonDetail({ pokemonId, onClose, onUnauthorized }) {
 
         {pokemon && (
           <>
-            <img src={pokemon.sprites.front_default} alt={pokemon.name} className="mx-auto h-40 w-40" />
+            <img src={pokemon.images.artwork ?? pokemon.images.sprite} alt={pokemon.name} className="mx-auto h-40 w-40" />
             <p className="text-center text-slate-500">#{pokemon.id}</p>
             <h2 className="text-center text-2xl font-bold capitalize">{pokemon.name}</h2>
 
             <ul className="my-3 flex justify-center gap-2">
-              {pokemon.types.map(({ type }) => (
-                <li key={type.name} className="rounded-full bg-slate-200 px-3 py-1 text-sm">
-                  {POKEMON_TYPE_LABELS[type.name] ?? type.name}
+              {pokemon.types.map((type) => (
+                <li key={type} className="rounded-full bg-slate-200 px-3 py-1 text-sm">
+                  {POKEMON_TYPE_LABELS[type] ?? type}
                 </li>
               ))}
             </ul>
 
             <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
-              {baseStats.map(({ stat, base_stat }) => (
-                <Fragment key={stat.name}>
-                  <dt className="font-medium">{STAT_LABELS[stat.name]}</dt>
-                  <dd>{base_stat}</dd>
+              {baseStats.map(({ name, value }) => (
+                <Fragment key={name}>
+                  <dt className="font-medium">{STAT_LABELS[name]}</dt>
+                  <dd>{value}</dd>
                 </Fragment>
               ))}
               <dt className="font-medium">Altura</dt>
-              <dd>{pokemon.height / DECIMETERS_PER_METER} m</dd>
+              <dd>{pokemon.height_m} m</dd>
               <dt className="font-medium">Peso</dt>
-              <dd>{pokemon.weight / HECTOGRAMS_PER_KILOGRAM} kg</dd>
+              <dd>{pokemon.weight_kg} kg</dd>
             </dl>
 
             <h3 className="mt-4 font-semibold">Habilidades</h3>
             <ul className="list-inside list-disc text-sm capitalize">
-              {pokemon.abilities.map(({ ability }) => (
-                <li key={ability.name}>{ability.name.replace('-', ' ')}</li>
+              {pokemon.abilities.map(({ name }) => (
+                <li key={name}>{name.replace('-', ' ')}</li>
               ))}
             </ul>
           </>
