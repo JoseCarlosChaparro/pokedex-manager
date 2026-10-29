@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { GENERATIONS, SORTS } from '../pokedexFilter'
 import { POKEMON_TYPE_COLORS, POKEMON_TYPE_LABELS, readableTextColor } from '../pokemonTypes'
 import { DENSITIES } from '../urlState'
@@ -10,16 +10,31 @@ function isTypingTarget(element) {
   return element instanceof HTMLElement && (element.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(element.tagName))
 }
 
+const ANNOUNCE_DELAY_MS = 700
+
+const formatCount = (count) => (count === 1 ? '1 Pokémon' : `${count.toLocaleString('es-MX')} Pokémon`)
+
+// Screen readers hear the result count once typing pauses, not on every keystroke
+function useDebouncedValue(value, delayMs) {
+  const [debounced, setDebounced] = useState(value)
+  useEffect(() => {
+    const timer = window.setTimeout(() => setDebounced(value), delayMs)
+    return () => window.clearTimeout(timer)
+  }, [value, delayMs])
+  return debounced
+}
+
 const fieldClass =
   'min-h-11 rounded-xl bg-white/80 px-3 ring-1 ring-slate-300/70 backdrop-blur dark:bg-slate-800/80 dark:ring-slate-600'
 
 // Every change applies instantly (client-side filtering over the Pokédex index)
 export default function FilterBar({ filters, resultCount, onChange }) {
   const searchRef = useRef(null)
+  const announcedCount = useDebouncedValue(resultCount, ANNOUNCE_DELAY_MS)
 
   useEffect(() => {
     function handleShortcut(event) {
-      if (event.key !== '/' || isTypingTarget(document.activeElement)) return
+      if (event.key !== '/' || isTypingTarget(document.activeElement) || document.querySelector('dialog[open]')) return
       event.preventDefault()
       searchRef.current?.focus()
     }
@@ -110,8 +125,9 @@ export default function FilterBar({ filters, resultCount, onChange }) {
       </div>
 
       <div className="flex min-h-9 items-center justify-between gap-2 text-sm">
-        <p aria-live="polite" className="font-medium text-slate-700 dark:text-slate-300">
-          {resultCount === 1 ? '1 Pokémon' : `${resultCount.toLocaleString('es-MX')} Pokémon`}
+        <p className="font-medium text-slate-700 dark:text-slate-300">{formatCount(resultCount)}</p>
+        <p aria-live="polite" className="sr-only">
+          {formatCount(announcedCount)}
         </p>
         {hasFilters && (
           <button type="button" onClick={() => onChange({ q: '', types: [], gen: '' })} className="min-h-9 rounded-lg px-2 underline">

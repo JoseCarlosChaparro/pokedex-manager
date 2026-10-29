@@ -48,12 +48,27 @@ export default function PokemonDetail({ pokemonId, onClose, onNavigate, onUnauth
 
   const isLoading = result.id !== pokemonId
   const pokemon = isLoading ? null : result.pokemon
-  const canGoBack = id > FIRST_POKEMON_ID
-  const canGoForward = id < NATIONAL_DEX_SIZE
+  // Previous/next walk the National Pokédex; alternate forms (ids > 10000) and invalid ids have no neighbours
+  const isNationalDexId = Number.isInteger(id) && id >= FIRST_POKEMON_ID && id <= NATIONAL_DEX_SIZE
+  const canGoBack = isNationalDexId && id > FIRST_POKEMON_ID
+  const canGoForward = isNationalDexId && id < NATIONAL_DEX_SIZE
+  const dialogRef = useRef(null)
+
+  // Native modal dialog: traps focus, makes the page behind it inert and handles Escape (cancel event)
+  useEffect(() => {
+    const dialog = dialogRef.current
+    if (!dialog.open) dialog.showModal?.()
+    const root = document.documentElement
+    const previousOverflow = root.style.overflow
+    root.style.overflow = 'hidden'
+    return () => {
+      root.style.overflow = previousOverflow
+      if (dialog.open) dialog.close()
+    }
+  }, [])
 
   useEffect(() => {
     function handleKeyDown(event) {
-      if (event.key === 'Escape') onClose()
       if (isTyping()) return
       if (event.key === 'ArrowLeft' && canGoBack) onNavigate(id - 1)
       if (event.key === 'ArrowRight' && canGoForward) onNavigate(id + 1)
@@ -74,12 +89,19 @@ export default function PokemonDetail({ pokemonId, onClose, onNavigate, onUnauth
   const title = pokemon ? formatName(pokemon.name) : 'Pokémon'
 
   return (
-    <div className="detail-backdrop fixed inset-0 z-30 grid place-items-center bg-slate-950/60 p-3 backdrop-blur-sm sm:p-6" onClick={onClose}>
+    <dialog
+      ref={dialogRef}
+      aria-labelledby="pokemon-detail-title"
+      onCancel={(event) => {
+        event.preventDefault()
+        onClose()
+      }}
+      onClick={(event) => {
+        if (event.target === event.currentTarget) onClose()
+      }}
+      className="detail-backdrop fixed inset-0 m-0 grid h-full max-h-none w-full max-w-none place-items-center bg-slate-950/60 p-3 text-slate-900 backdrop-blur-sm backdrop:bg-transparent sm:p-6 dark:text-slate-100"
+    >
       <article
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="pokemon-detail-title"
-        onClick={(event) => event.stopPropagation()}
         className="max-h-full w-full max-w-md overflow-x-hidden overflow-y-auto overscroll-contain p-4 [scrollbar-width:none]"
       >
       <div className="mb-3 flex items-center justify-between gap-2 px-1">
@@ -93,7 +115,7 @@ export default function PokemonDetail({ pokemonId, onClose, onNavigate, onUnauth
             ×
           </button>
           <p className="rounded-full bg-white/85 px-3 py-1 font-mono text-sm font-semibold text-slate-800 shadow-sm dark:bg-slate-900/80 dark:text-slate-100">
-            #{String(id).padStart(4, '0')}
+            {Number.isInteger(id) ? `#${String(id).padStart(4, '0')}` : pokemonId}
           </p>
           {pokemon && (
             <FavoriteButton pokemon={{ id, name: pokemon.name }} isFavorite={isFavorite} onToggle={onToggleFavorite} />
@@ -103,7 +125,6 @@ export default function PokemonDetail({ pokemonId, onClose, onNavigate, onUnauth
         <HoloCard color={typeColor}>
           <HoloArt>
           <img
-            data-detail-art
             src={art}
             alt={pokemon ? `${title}${showShiny ? ' (variocolor)' : ''}` : ''}
             onError={(event) => {
@@ -198,6 +219,7 @@ export default function PokemonDetail({ pokemonId, onClose, onNavigate, onUnauth
               </>
             )}
 
+            {isNationalDexId && (
             <nav aria-label="Pokémon anterior y siguiente" className="mt-5 flex justify-between gap-2">
               <button
                 type="button"
@@ -216,10 +238,11 @@ export default function PokemonDetail({ pokemonId, onClose, onNavigate, onUnauth
                 #{String(id + 1).padStart(4, '0')} →
               </button>
             </nav>
+            )}
           </div>
         </HoloCard>
         </div>
       </article>
-    </div>
+    </dialog>
   )
 }
