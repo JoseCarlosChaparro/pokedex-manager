@@ -16,6 +16,9 @@ services:
     environment:
       MONGO_URL: mongodb://${MONGO_USER}:${MONGO_PASSWORD}@mongo:27017/?authSource=admin
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:?JWT_SECRET_KEY must be set}
+      # Trust X-Forwarded-For only from private networks (nginx); nginx overwrites it with the real client IP.
+      # Used by the per-IP login rate limit.
+      FORWARDED_ALLOW_IPS: "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
     depends_on:
       - mongo
 
