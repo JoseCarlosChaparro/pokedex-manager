@@ -69,3 +69,30 @@ def test_pokeapi_timeout_maps_to_504(client, auth_headers, fake_pokeapi):
     fake_pokeapi.fail_with = TIMEOUT
 
     assert client.get("/api/pokemon/25", headers=auth_headers).status_code == 504
+
+
+def test_detail_is_trimmed_to_what_the_ui_needs(client, auth_headers):
+    response = client.get("/api/pokemon/6", headers=auth_headers)
+
+    assert response.json() == {
+        "id": 6,
+        "name": "charizard",
+        "types": ["fire", "flying"],
+        "height_m": 0.7,
+        "weight_kg": 6.9,
+        "abilities": [{"name": "static", "is_hidden": False}],
+        "stats": [
+            {"name": "hp", "value": 40},
+            {"name": "attack", "value": 41},
+            {"name": "defense", "value": 42},
+            {"name": "special-attack", "value": 43},
+            {"name": "special-defense", "value": 44},
+            {"name": "speed", "value": 45},
+        ],
+        "images": {
+            "sprite": "https://sprites.test/6.png",
+            "shiny": "https://sprites.test/shiny/6.png",
+            "artwork": "https://sprites.test/art/6.png",
+        },
+        "cry": "https://cries.test/6.ogg",
+    }

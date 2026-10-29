@@ -10,10 +10,35 @@ from pokedex_manager.exceptions.pokeapi import (
     PokemonNotFoundError,
     PokemonTypeNotFoundError,
 )
+from pokedex_manager.models.pokemon import Ability, PokemonDetail, PokemonImages, Stat
 from pokedex_manager.services.search import PokemonName
 
 # Larger than the whole Pokédex, so a single request returns every name
 NAME_INDEX_LIMIT = 100_000
+
+
+# PokéAPI returns height in decimeters and weight in hectograms
+DECIMETERS_PER_METER = 10
+HECTOGRAMS_PER_KILOGRAM = 10
+
+
+def _to_pokemon_detail(data: dict) -> PokemonDetail:
+    sprites = data["sprites"]
+    return PokemonDetail(
+        id=data["id"],
+        name=data["name"],
+        types=[entry["type"]["name"] for entry in sorted(data["types"], key=lambda entry: entry["slot"])],
+        height_m=data["height"] / DECIMETERS_PER_METER,
+        weight_kg=data["weight"] / HECTOGRAMS_PER_KILOGRAM,
+        abilities=[Ability(name=a["ability"]["name"], is_hidden=a["is_hidden"]) for a in data["abilities"]],
+        stats=[Stat(name=s["stat"]["name"], value=s["base_stat"]) for s in data["stats"]],
+        images=PokemonImages(
+            sprite=sprites.get("front_default"),
+            shiny=sprites.get("front_shiny"),
+            artwork=sprites.get("other", {}).get("official-artwork", {}).get("front_default"),
+        ),
+        cry=data.get("cries", {}).get("latest"),
+    )
 
 
 def _id_from_resource_url(url: str) -> int:
@@ -31,9 +56,10 @@ class PokeAPIClient:
     async def list_pokemon(self, limit: int, offset: int) -> dict:
         return await self._get_json("/pokemon", params={"limit": limit, "offset": offset})
 
-    async def get_pokemon(self, id_or_name: str | int) -> dict:
+    async def get_pokemon(self, id_or_name: str | int) -> PokemonDetail:
         key = str(id_or_name).strip().lower()
-        return await self._get_json(f"/pokemon/{key}", on_not_found=lambda: PokemonNotFoundError(key))
+        data = await self._get_json(f"/pokemon/{key}", on_not_found=lambda: PokemonNotFoundError(key))
+        return _to_pokemon_detail(data)
 
     async def get_name_index(self) -> list[PokemonName]:
         data = await self._get_json("/pokemon", params={"limit": NAME_INDEX_LIMIT, "offset": 0})

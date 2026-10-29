@@ -3,6 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from pokedex_manager.dependencies import get_pokeapi, get_token_payload
+from pokedex_manager.models.pokemon import PokemonDetail
 from pokedex_manager.services.pokeapi import PokeAPIClient
 from pokedex_manager.services.search import suggest
 
@@ -30,7 +31,7 @@ async def suggest_pokemon(
     return [match._asdict() for match in suggest(index, q, limit)]
 
 
-@router.get("/pokemon/search")
+@router.get("/pokemon/search", response_model=PokemonDetail)
 async def search_pokemon(pokeapi: PokeAPI, name: str = Query(...)):
     clean_name = name.strip().lower()
     if not clean_name:
@@ -38,7 +39,7 @@ async def search_pokemon(pokeapi: PokeAPI, name: str = Query(...)):
     return await pokeapi.get_pokemon(clean_name)
 
 
-@router.get("/pokemon/{id_or_name}")
+@router.get("/pokemon/{id_or_name}", response_model=PokemonDetail)
 async def get_pokemon(id_or_name: str, pokeapi: PokeAPI):
     return await pokeapi.get_pokemon(id_or_name)
 

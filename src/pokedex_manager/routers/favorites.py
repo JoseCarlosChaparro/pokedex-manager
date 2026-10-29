@@ -31,7 +31,7 @@ async def add_favorite(
 ):
     pokemon = await pokeapi.get_pokemon(pokemon_id)
     added_at = datetime.fromtimestamp(clock(), tz=UTC)
-    return await favorites.add(user_id, pokemon_id, pokemon["name"], added_at)
+    return await favorites.add(user_id, pokemon_id, pokemon.name, added_at)
 
 
 @router.delete("/{pokemon_id}", status_code=status.HTTP_204_NO_CONTENT)
