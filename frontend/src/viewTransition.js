@@ -18,6 +18,8 @@ export function viewDirection(from, to) {
 
 // Only the first items move; the rest appear in place, which keeps long grids cheap
 const animatedItems = (grid) => Array.from(grid.children).slice(0, ANIMATED_ITEMS)
+// GSAP leaves inline styles behind; a card kept across the swap would otherwise stay invisible
+const clearTweenStyles = (items) => gsap.set(items, { clearProps: TWEEN_PROPS })
 
 function exitMotion(direction, reducedMotion) {
   if (reducedMotion) return { from: { opacity: 1 }, to: { opacity: 0, duration: REDUCED_FADE_SECONDS } }
@@ -43,7 +45,7 @@ function tween(items, { from, to }, signal) {
       'abort',
       () => {
         animation.kill()
-        gsap.set(items, { clearProps: TWEEN_PROPS })
+        clearTweenStyles(items)
         resolve()
       },
       { once: true },
@@ -61,17 +63,20 @@ export async function playViewTransition({ grid, direction, reducedMotion, swap,
     return
   }
   let swapped = false
+  // Captured before the swap: the cards React keeps across it still carry the exit styles
+  const outgoing = animatedItems(grid)
   const applySwap = () => {
     swapped = true
     swap()
+    clearTweenStyles(outgoing)
   }
   try {
-    await tween(animatedItems(grid), exitMotion(direction, reducedMotion), signal)
+    await tween(outgoing, exitMotion(direction, reducedMotion), signal)
     if (signal?.aborted) return
     applySwap()
     await tween(animatedItems(grid), enterMotion(direction, reducedMotion), signal)
   } catch {
-    gsap.set(animatedItems(grid), { clearProps: TWEEN_PROPS })
+    clearTweenStyles([...outgoing, ...animatedItems(grid)])
     if (!swapped && !signal?.aborted) applySwap()
   }
 }
