@@ -134,7 +134,8 @@
     "brand": "POKÉ PACK",
     "question": "¿Quién será?",
     "open": "Abrir sobre",
-    "openError": "No pudimos abrir el sobre. Intenta de nuevo."
+    "openError": "No pudimos abrir el sobre. Intenta de nuevo.",
+    "joined": "{{name}} se unió a tu colección"
   },
   "detail": {
     "defaultTitle": "Pokémon",

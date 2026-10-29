@@ -134,7 +134,8 @@
     "brand": "POKÉ PACK",
     "question": "Who is it?",
     "open": "Open pack",
-    "openError": "We couldn't open the pack. Please try again."
+    "openError": "We couldn't open the pack. Please try again.",
+    "joined": "{{name}} joined your collection"
   },
   "detail": {
     "defaultTitle": "Pokémon",

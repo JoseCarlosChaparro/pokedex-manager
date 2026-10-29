@@ -135,6 +135,22 @@ export default function PokemonBrowser({ onUnauthorized, playTransition = playVi
     if (!isLoading && url.page !== page) setUrl({ page }, { replace: true })
   }, [isLoading, url.page, page, setUrl])
 
+  // The opened pack unmounts, taking its own live region with it: the browser announces and restores focus
+  const [announcement, setAnnouncement] = useState('')
+  const focusCardIdRef = useRef(null)
+  function handlePackOpen(pokemon, { restoreFocus }) {
+    openPack(pokemon)
+    setAnnouncement(t('pack.joined', { name: pokemon.name.replaceAll('-', ' ') }))
+    focusCardIdRef.current = restoreFocus ? pokemon.id : null
+  }
+  // After each render the card for an opened pack exists; move focus to it when the pack had keyboard focus
+  useEffect(() => {
+    const id = focusCardIdRef.current
+    if (id === null) return
+    focusCardIdRef.current = null
+    cardButton(id)?.focus()
+  })
+
   const auroraColors = url.types.map((type) => POKEMON_TYPE_COLORS[type])
   const sealedCount = favorites.filter((favorite) => !favorite.opened).length
   const isCollectionEmpty = isFavoritesView && favorites.length === 0
@@ -166,12 +182,21 @@ export default function PokemonBrowser({ onUnauthorized, playTransition = playVi
         <EmptyState variant={emptyVariant} onAction={emptyAction} />
       )}
 
+      <div aria-live="polite" className="sr-only">
+        {announcement}
+      </div>
       <ul ref={gridRef} aria-busy={isLoading} className={`grid gap-3 sm:gap-4 ${GRID_COLUMNS[url.density]}`}>
         {isLoading
           ? Array.from({ length: PAGE_SIZE }, (_, i) => <PokemonCardSkeleton key={i} />)
           : items.map((pokemon, i) =>
               isFavoritesView && pokemon.opened === false ? (
-                <BoosterPack key={`pack-${pokemon.id}`} pokemon={pokemon} position={(page - 1) * PAGE_SIZE + i + 1} onOpen={openPack} />
+                <BoosterPack
+                  key={`pack-${pokemon.id}`}
+                  pokemon={pokemon}
+                  position={(page - 1) * PAGE_SIZE + i + 1}
+                  density={url.density}
+                  onOpen={handlePackOpen}
+                />
               ) : (
                 <PokemonCard
                   key={pokemon.id}
