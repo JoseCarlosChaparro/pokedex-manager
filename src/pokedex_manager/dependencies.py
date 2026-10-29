@@ -4,6 +4,8 @@ import jwt
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
+from pokedex_manager.clock import Clock
+from pokedex_manager.repositories.favorites import FavoriteRepository
 from pokedex_manager.repositories.revoked_tokens import RevokedTokenRepository
 from pokedex_manager.repositories.users import UserRepository
 from pokedex_manager.services.auth import TokenService
@@ -19,6 +21,14 @@ def get_users(request: Request) -> UserRepository:
 
 def get_revoked_tokens(request: Request) -> RevokedTokenRepository:
     return request.app.state.revoked_tokens
+
+
+def get_favorites(request: Request) -> FavoriteRepository:
+    return request.app.state.favorites
+
+
+def get_clock(request: Request) -> Clock:
+    return request.app.state.clock
 
 
 def get_tokens(request: Request) -> TokenService:
